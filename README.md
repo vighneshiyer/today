@@ -160,12 +160,17 @@ The files are the source of truth. To delete a task, just remove it from the fil
 ### Markdown Parser
 
 - Python Markdown libraries
-    - [mistune (2.2k)](https://github.com/lepture/mistune) - high performance, not precisely CommonMark compliant
     - [Python-Markdown (3.1k)](https://github.com/Python-Markdown/markdown/) - most popular, middling performance, also not precisely CommonMark compliant
+    - [mistune (2.2k)](https://github.com/lepture/mistune) - high performance, not precisely CommonMark compliant
+      - Easy AST hacking, high perf, new 3.0 release incoming
     - [marko (179)](https://github.com/frostming/marko) - not popular, but claims best CommonMark compliance, middling performance
+      - There is no Markdown renderer (for roundtrip)
     - [mistletoe (552)](https://github.com/miyuchina/mistletoe/) - less popular, claims fastest pure Python CommonMark compliance
-- All these seem to support raw AST dumping mode, which is what I'm looking for
-- Of these, mistletoe seems to be the best balance of performance and compliance and ease of working with the AST representation; mistune is a close second
+      - AST hacking is painful, and no Markdown renderer (for roundtrip)
+- Decision
+  - All these seem to support raw AST dumping mode, which is what I'm looking for
+  - Of these, mistletoe seems to be the best balance of performance and compliance and ease of working with the AST representation; mistune is a close second
+  - At the end of the day, mistune is superior. Markdown renderer, easy pure Python AST, fast
 
 ### Rich TUI Library
 

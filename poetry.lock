@@ -215,12 +215,12 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
-name = "mistletoe"
-version = "1.0.0"
-description = "A fast, extensible Markdown parser in pure Python."
+name = "mistune"
+version = "3.0.0rc4"
+description = "A sane Markdown parser with useful plugins and renderers"
 category = "main"
 optional = false
-python-versions = "~=3.5"
+python-versions = "*"
 
 [[package]]
 name = "mypy"
@@ -632,7 +632,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "9ed69fbee553a9d63d0d209de9551065fcd86f9d8d5a037bd3f97e64a445b718"
+content-hash = "af280c2ade43a1e1722792501ce9c17265dd5391606de38b8a6ca8bed361a568"
 
 [metadata.files]
 alabaster = [
@@ -839,9 +839,9 @@ mdurl = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
-mistletoe = [
-    {file = "mistletoe-1.0.0-py3-none-any.whl", hash = "sha256:727cbd74006b3cea6685587c6d926256b9558a6d2b28b6f2ed1d1a9afd3add82"},
-    {file = "mistletoe-1.0.0.tar.gz", hash = "sha256:fa0e9c57e2050cfd68ae304e4f9c5e1e693574cc5fd8323db33452949d682661"},
+mistune = [
+    {file = "mistune-3.0.0rc4-py2.py3-none-any.whl", hash = "sha256:c5d2002dcfb14d963c9f70dc9cd95b907eb1330fbf99a481139b2c21c05bffd4"},
+    {file = "mistune-3.0.0rc4.tar.gz", hash = "sha256:04878ff4a582cfe22443be6f8292c9458c5e86396f7586f2bfaea199b43d0345"},
 ]
 mypy = [
     {file = "mypy-0.991-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:7d17e0a9707d0772f4a7b878f04b4fd11f6f5bcb9b3813975a9b13c9332153ab"},

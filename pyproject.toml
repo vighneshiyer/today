@@ -15,7 +15,8 @@ today = "today.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-mistletoe = "^1.0"
+mistune = "3.0.0rc4"
+#mistletoe = "^1.0"
 rich = "^13.1"
 pydantic = "^1.9.2"
 
