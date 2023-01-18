@@ -56,3 +56,17 @@ Description for task 1
             Task(path=["Tasks"], title="Task 1", done=False, description="Description for task 1\n\n> quote block\n>\n> another line"),
             Task(path=["Tasks"], title="Task 2", done=True)
         ]
+
+        bullet_tasks = """# Tasks
+- [ ] Task 1
+- [x] Task 2
+- [ ] Task 3
+
+d3 for task 3
+"""
+        result = parse_markdown_str(bullet_tasks.split('\n'))
+        assert result == [
+            Task(path=["Tasks"], title="Task 1", done=False),
+            Task(path=["Tasks"], title="Task 2", done=True),
+            Task(path=["Tasks"], title="Task 3", done=False, description="d3 for task 3"),
+        ]
