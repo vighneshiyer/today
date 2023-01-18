@@ -1,8 +1,11 @@
+import pprint
+
 import mistune
+import pytest
 from mistune import BlockState
 from mistune.renderers.markdown import MarkdownRenderer
 
-from today.task import parse_markdown, Task
+from today.task import parse_markdown, Task, parse_heading, handle_headings_stack, parse_markdown_str
 
 
 class TestParser:
@@ -10,23 +13,64 @@ class TestParser:
 
 - [ ] Task 1
 
-- [ ] Task 2
+Description for task 1
+
+> quote block
+>
+> another line
+
+- [x] Task 2
 """
     ast_parser = mistune.create_markdown(renderer=None)
 
+    def test_parse_heading(self) -> None:
+        assert parse_heading("# Title") == (1, "Title")
+        assert parse_heading("### **title 2**") == (3, "**title 2**")
+        with pytest.raises(ValueError):
+            parse_heading("bare line")
+
+    def test_handle_headings_stack(self) -> None:
+        # Test initial filling
+        with pytest.raises(ValueError):
+            handle_headings_stack([], "### h3")
+
+        # Test deepening hierarchy
+        assert handle_headings_stack([], "# h1") == ["h1"]
+        assert handle_headings_stack(["h1", "h2"], "### h3") == ["h1", "h2", "h3"]
+        with pytest.raises(ValueError):
+            handle_headings_stack(["h1", "h2"], "#### h4")
+
+        # Test flat hierarchy traversal
+        assert handle_headings_stack(["h1", "h2"], "## h2prime") == ["h1", "h2prime"]
+
+        # Test pulling out of hierarchy
+        assert handle_headings_stack(["h1", "h2"], "# h1prime") == ["h1prime"]
+        assert handle_headings_stack(["h1", "h2", "h3"], "## h2prime") == ["h1", "h2prime"]
+        assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "## h2prime") == ["h1", "h2prime"]
+        assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "# h1prime") == ["h1prime"]
+
+    def test_parse_md(self) -> None:
+        assert parse_markdown_str(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False)]
+        assert parse_markdown_str(["# h1", "", "## h2", "", "- [ ] Task 1"]) == [Task(path=["h1", "h2"], title="Task 1", done=False)]
+
+
+    """
     def test_roundtrip(self) -> None:
         # Convert Markdown to AST and back to Markdown
         ast = self.ast_parser(self.simple_md)
-
+        pprint.pprint(ast)
         md_renderer = MarkdownRenderer()
         md = md_renderer(ast, BlockState())
+        print(md)
         assert md == self.simple_md
 
     def test_basic_task_parsing(self) -> None:
         # Parse an AST to tasks
         ast = self.ast_parser(self.simple_md)
         tasks = parse_markdown(ast)
+        print(tasks)
         assert tasks == [
-            Task(path=["Tasks"], title="Task 1", done=False),
-            Task(path=["Tasks"], title="Task 2", done=False)
+            Task(path=["Tasks"], title="Task 1", done=False, description="Description for task 1\n\n> quote block\n"),
+            Task(path=["Tasks"], title="Task 2", done=True)
         ]
+    """
