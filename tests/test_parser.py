@@ -1,27 +1,10 @@
-import pprint
-
 import mistune
 import pytest
-from mistune import BlockState
-from mistune.renderers.markdown import MarkdownRenderer
 
 from today.task import parse_markdown, Task, parse_heading, handle_headings_stack, parse_markdown_str
 
 
 class TestParser:
-    simple_md = """# Tasks
-
-- [ ] Task 1
-
-Description for task 1
-
-> quote block
->
-> another line
-
-- [x] Task 2
-"""
-    ast_parser = mistune.create_markdown(renderer=None)
 
     def test_parse_heading(self) -> None:
         assert parse_heading("# Title") == (1, "Title")
@@ -52,25 +35,24 @@ Description for task 1
     def test_parse_md(self) -> None:
         assert parse_markdown_str(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False)]
         assert parse_markdown_str(["# h1", "", "## h2", "", "- [ ] Task 1"]) == [Task(path=["h1", "h2"], title="Task 1", done=False)]
+        assert parse_markdown_str(["# h1", "", "## h2", "", "- [ ] Task 1", "## h2prime", "", "- [x] Task 2"]) == [
+            Task(path=["h1", "h2"], title="Task 1", done=False),
+            Task(path=["h1", "h2prime"], title="Task 2", done=True),
+        ]
+        tasks_with_desc = """# Tasks
 
+- [ ] Task 1
 
-    """
-    def test_roundtrip(self) -> None:
-        # Convert Markdown to AST and back to Markdown
-        ast = self.ast_parser(self.simple_md)
-        pprint.pprint(ast)
-        md_renderer = MarkdownRenderer()
-        md = md_renderer(ast, BlockState())
-        print(md)
-        assert md == self.simple_md
+Description for task 1
 
-    def test_basic_task_parsing(self) -> None:
-        # Parse an AST to tasks
-        ast = self.ast_parser(self.simple_md)
-        tasks = parse_markdown(ast)
-        print(tasks)
-        assert tasks == [
-            Task(path=["Tasks"], title="Task 1", done=False, description="Description for task 1\n\n> quote block\n"),
+> quote block
+>
+> another line
+
+- [x] Task 2
+"""
+        result = parse_markdown_str(tasks_with_desc.split('\n'))
+        assert result == [
+            Task(path=["Tasks"], title="Task 1", done=False, description="Description for task 1\n\n> quote block\n>\n> another line"),
             Task(path=["Tasks"], title="Task 2", done=True)
         ]
-    """

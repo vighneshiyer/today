@@ -12,7 +12,7 @@ class Task:
     path: List[str]
     title: str
     done: bool
-    description: Optional[str] = None  # A Markdown string with the task description
+    description: str = "" # A Markdown string with the task description
     subtasks: List["Task"] = field(default_factory=lambda: [])
     created_date: Optional[date] = None
     reminder_date: Optional[date] = None
@@ -66,6 +66,10 @@ def parse_markdown_str(md: List[str]) -> List[Task]:
     for line in md:
         if line.startswith("#"):  # This is a heading
             headings_stack = handle_headings_stack(headings_stack, line)
+            # Headings terminate any task already being parsed
+            if current_task is not None:
+                tasks.append(current_task)
+                current_task = None
         elif line.startswith("- ["):  # This might be a checkbox
             task_status = md_checkbox(line[len("- "):])
             if task_status is not None:
@@ -74,8 +78,18 @@ def parse_markdown_str(md: List[str]) -> List[Task]:
                 current_task = Task(path=headings_stack.copy(), title=line[len("- [ ] "):], done=task_status)
             else:
                 assert False
+        elif len(line) == 0 and current_task is None:
+            continue
+        else:  # This is part of the description of a current task
+            assert current_task is not None
+            current_task.description = current_task.description + "\n" + line
+
     if current_task is not None:
         tasks.append(current_task)
+
+    # Post-process descriptions - remove trailing or leading newlines
+    for i in range(len(tasks)):
+        tasks[i].description = tasks[i].description.strip("\n")
     return tasks
 
 
