@@ -1,7 +1,6 @@
-import mistune
 import pytest
 
-from today.task import parse_markdown, Task, parse_heading, handle_headings_stack, parse_markdown_str
+from today.task import Task, parse_heading, handle_headings_stack, parse_markdown, extract_date_defns
 
 
 class TestParser:
@@ -32,10 +31,15 @@ class TestParser:
         assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "## h2prime") == ["h1", "h2prime"]
         assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "# h1prime") == ["h1prime"]
 
-    def test_parse_md(self) -> None:
-        assert parse_markdown_str(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False)]
-        assert parse_markdown_str(["# h1", "", "## h2", "", "- [ ] Task 1"]) == [Task(path=["h1", "h2"], title="Task 1", done=False)]
-        assert parse_markdown_str(["# h1", "", "## h2", "", "- [ ] Task 1", "## h2prime", "", "- [x] Task 2"]) == [
+    def test_extract_date_defns(self) -> None:
+        date_defns, title = extract_date_defns("[c:33] things #tag [d:233] [f:5] asdf [c:99]")
+        assert date_defns == ["c:33", "d:233", "f:5", "c:99"]
+        assert title == "things #tag asdf"
+
+    def test_basic_task_parsing(self) -> None:
+        assert parse_markdown(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False)]
+        assert parse_markdown(["# h1", "", "## h2", "", "- [ ] Task 1"]) == [Task(path=["h1", "h2"], title="Task 1", done=False)]
+        assert parse_markdown(["# h1", "", "## h2", "", "- [ ] Task 1", "## h2prime", "", "- [x] Task 2"]) == [
             Task(path=["h1", "h2"], title="Task 1", done=False),
             Task(path=["h1", "h2prime"], title="Task 2", done=True),
         ]
@@ -51,22 +55,26 @@ Description for task 1
 
 - [x] Task 2
 """
-        result = parse_markdown_str(tasks_with_desc.split('\n'))
+        result = parse_markdown(tasks_with_desc.split('\n'))
         assert result == [
             Task(path=["Tasks"], title="Task 1", done=False, description="Description for task 1\n\n> quote block\n>\n> another line"),
             Task(path=["Tasks"], title="Task 2", done=True)
         ]
 
+    def test_bullet_task_parsing(self) -> None:
         bullet_tasks = """# Tasks
 - [ ] Task 1
 - [x] Task 2
 - [ ] Task 3
 
 d3 for task 3
+
+- [ ] Task 4
 """
-        result = parse_markdown_str(bullet_tasks.split('\n'))
+        result = parse_markdown(bullet_tasks.split('\n'))
         assert result == [
             Task(path=["Tasks"], title="Task 1", done=False),
             Task(path=["Tasks"], title="Task 2", done=True),
             Task(path=["Tasks"], title="Task 3", done=False, description="d3 for task 3"),
+            Task(path=["Tasks"], title="Task 4", done=False)
         ]

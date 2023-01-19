@@ -55,11 +55,25 @@ def md_checkbox(s: str) -> Optional[bool]:
         return None
 
 
-def parse_task_title(headings_stack: List[str], title: str) -> Task:
-    return Task(path=headings_stack, title=title[len("[ ]")+1:], done=False)
+def extract_date_defns(title: str) -> Tuple[List[str], str]:
+    date_defns_partial = title.split('[')[1:]
+    date_defns = [x[:x.find(']')] for x in date_defns_partial]
+
+    # remove date defns iteratively until nothing is left
+    while "[" in title:
+        start_idx = title.find('[')
+        end_idx = title.find(']')
+        title = title.replace(title[start_idx:end_idx+2], '')
+    return date_defns, title.rstrip()
 
 
-def parse_markdown_str(md: List[str]) -> List[Task]:
+def parse_task_title(headings_stack: List[str], title: str, done: bool) -> Task:
+    date_defns = extract_date_defns(title[len("[ ] "):])
+    t = Task(path=headings_stack, title=title[len("[ ]")+1:], done=done)
+    #if title.
+
+
+def parse_markdown(md: List[str]) -> List[Task]:
     headings_stack: List[str] = []
     current_task: Optional[Task] = None
     tasks: List[Task] = []
@@ -90,46 +104,4 @@ def parse_markdown_str(md: List[str]) -> List[Task]:
     # Post-process descriptions - remove trailing or leading newlines
     for i in range(len(tasks)):
         tasks[i].description = tasks[i].description.strip("\n")
-    return tasks
-
-
-def parse_markdown(md: List[Any]) -> List[Task]:
-    md_renderer = MarkdownRenderer()
-
-    headings_stack: List[str] = []
-    current_task: Optional[Task] = None
-    tasks: List[Task] = []
-
-    for item in md:
-        if item['type'] == "heading":
-            headings_stack.append(item['children'][0]['raw'])
-        elif item['type'] == "blank_line":
-            continue
-        elif item['type'] == "list":
-            list_items = item['children']
-            for list_item in list_items:
-                assert len(list_item['children']) == 1
-                text_ast = list_item['children'][0]
-
-                assert text_ast['type'] in ('paragraph', 'block_text')
-                list_item_text = "".join([child['raw'] for child in text_ast['children']])
-
-                list_item_is_task = md_checkbox(list_item_text)
-                if list_item_is_task is not None:  # This the start of a new task
-                    if current_task is not None:  # Another task was being parsed
-                        tasks.append(current_task)
-                    current_task = parse_task_title(headings_stack, list_item_text)
-                    current_task.done = list_item_is_task
-        else:
-            # This item is part of the current task's description
-            print(item)
-            assert current_task is not None
-            if current_task.description is not None:
-                current_task.description = current_task.description + "\n" + md_renderer([item], BlockState())
-            else:
-                current_task.description = md_renderer([item], BlockState())
-
-    if current_task is not None:
-        tasks.append(current_task)
-
     return tasks

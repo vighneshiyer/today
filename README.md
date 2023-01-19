@@ -46,7 +46,7 @@ In `chores.md`:
 ```markdown
 ## Cleaning
 
-[ ] Home cleaning
+- [ ] Home cleaning
 ```
 
 ### Tags
@@ -54,7 +54,7 @@ In `chores.md`:
 - A task can have one or more tags, designated by hashtags in the task title. Tags are highlighted when a task is displayed, but are otherwise useless.
 
 ```markdown
-[ ] Home cleaning #cleaning #house #offline
+- [ ] Home cleaning #cleaning #house #offline
 ```
 
 ### Dates
@@ -63,7 +63,7 @@ In `chores.md`:
     - If no prefix is present, the date will be interpreted as a due date
 
 ```markdown
-[ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
+- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
 ```
 
 ### Descriptions
@@ -71,7 +71,7 @@ In `chores.md`:
 - You can add a description for a task directly underneath the task title. It can consist of any Markdown you want.
 
 ```markdown
-[ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
+- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
 
 Here is a description paragraph. You can put any Markdown (*execpt headings*) underneath a task and it will be part of the task's description.
 
@@ -89,7 +89,7 @@ Here is a description paragraph. You can put any Markdown (*execpt headings*) un
     - Only one level of subtasks is supported
 
 ```markdown
-[ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
+- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
 
 I need to get this done soon.
 
