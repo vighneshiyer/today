@@ -56,21 +56,36 @@ def md_checkbox(s: str) -> Optional[bool]:
 
 
 def extract_date_defns(title: str) -> Tuple[List[str], str]:
-    date_defns_partial = title.split('[')[1:]
-    date_defns = [x[:x.find(']')] for x in date_defns_partial]
+    date_defns: List[str] = []
 
     # remove date defns iteratively until nothing is left
     while "[" in title:
         start_idx = title.find('[')
         end_idx = title.find(']')
+        date_defns.append(title[start_idx+1:end_idx])
         title = title.replace(title[start_idx:end_idx+2], '')
     return date_defns, title.rstrip()
 
 
 def parse_task_title(headings_stack: List[str], title: str, done: bool) -> Task:
-    date_defns = extract_date_defns(title[len("[ ] "):])
-    t = Task(path=headings_stack, title=title[len("[ ]")+1:], done=done)
-    #if title.
+    date_defns, task_title = extract_date_defns(title)
+    t = Task(path=headings_stack, title=task_title, done=done)
+    for defn in date_defns:
+        prefix = defn[0]
+        assert defn[1] == ":"
+        date_split = [int(d) for d in defn[2:].split('/')]
+        date_value = date(year=date_split[2], month=date_split[0], day=date_split[1])
+        if prefix == "c":
+            t.created_date = date_value
+        elif prefix == "r":
+            t.reminder_date = date_value
+        elif prefix == "d":
+            t.due_date = date_value
+        elif prefix == "f":
+            t.finished_date = date_value
+        else:
+            raise ValueError(f"Prefix {prefix} in date definition string {defn} is not recognized")
+    return t
 
 
 def parse_markdown(md: List[str]) -> List[Task]:
