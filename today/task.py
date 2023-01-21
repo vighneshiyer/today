@@ -67,9 +67,9 @@ def extract_date_defns(title: str) -> Tuple[List[str], str]:
 
 
 def task_should_be_displayed(task: Task, date_limit: date) -> bool:
-    if task.due_date and task.due_date <= date_limit:
+    if task.due_date and task.due_date <= date_limit and task.done is False:
         return True
-    elif task.reminder_date and task.reminder_date <= date_limit:
+    elif task.reminder_date and task.reminder_date <= date_limit and task.done is False:
         return True
     else:
         return False

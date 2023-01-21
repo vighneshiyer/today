@@ -50,9 +50,11 @@ class TestParser:
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 4)) is False
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 5)) is True
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 6)) is True
+        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), done=True), date(2022, 1, 6)) is False
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 1)) is False
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 3)) is True
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 4)) is True
+        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3), done=True), date(2022, 1, 4)) is False
 
     def test_basic_task_parsing(self) -> None:
         assert parse_markdown(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False, line_number=1)]
