@@ -60,7 +60,8 @@ In `chores.md`:
 ### Dates
 
 - A task can have a created, due, and reminder date by placing it in square brackets with the prefix `c`, `d`, or `r`.
-    - If no prefix is present, the date will be interpreted as a due date
+    - The date is in `month`/`day`/`year` format
+    - You can also use `t` as a date. For example, to specify today as the due date, write: `[d:t]`
 
 ```markdown
 - [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
@@ -157,6 +158,15 @@ The files are the source of truth. To delete a task, just remove it from the fil
 
 ## Dev Notes
 
+### TODO
+
+- [ ] Capture file names and line numbers
+- [ ] CLI
+- [ ] Subtasks
+- [ ] Links in the task title
+- [ ] Recurring tasks
+- [ ] Cancelled tasks
+
 ### Markdown Parser
 
 - Python Markdown libraries
@@ -169,8 +179,9 @@ The files are the source of truth. To delete a task, just remove it from the fil
       - AST hacking is painful, and no Markdown renderer (for roundtrip)
 - Decision
   - All these seem to support raw AST dumping mode, which is what I'm looking for
-  - Of these, mistletoe seems to be the best balance of performance and compliance and ease of working with the AST representation; mistune is a close second
-  - At the end of the day, mistune is superior. Markdown renderer, easy pure Python AST, fast
+  - **Initial thoughts**: mistletoe seems to be the best balance of performance and compliance and ease of working with the AST representation; mistune is a close second
+  - **Update**: mistune is superior. Markdown renderer from AST, easy pure Python AST (just dicts and lists), fast
+  - **Further update**: all these libraries are a pain to work with and have very minimal benefit for this project. I just want to parse very specific Markdown features and leave the rest of the document alone, so I have switched to manual and minimal parsing.
 
 ### Rich TUI Library
 
