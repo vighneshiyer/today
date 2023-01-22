@@ -101,13 +101,11 @@ Here is a description paragraph. Any text here will be part of the task's descri
 
 ```markdown
 - [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
-
-I need to get this done soon.
-
-- Subtasks
     - [ ] Sweep the floors [d:2/10/2023]
     - [ ] Wipe the countertops
     - [ ] Throw the trash
+
+I need to get this done soon. This is the main task description.
 ```
 
 ### Completed Tasks
@@ -164,7 +162,7 @@ The files are the source of truth. To delete a task, just remove it from the fil
 - Time tracking
 - Task History / Burndown rate
 - Attachments
-- Syncing
+- Syncing / phone editing
 
 ## Dev Notes
 
@@ -173,14 +171,17 @@ The files are the source of truth. To delete a task, just remove it from the fil
 - [x] Capture file names and line numbers
 - [x] CLI
 - [x] Emit due dates in CLI + how many days have elapsed
-- [ ] Emit reminder dates in CLI
+- [x] Emit reminder dates in CLI
 - [ ] Task description in CLI by specifying a task
+- [ ] Sort tasks by heading path and due date criticality (highest priority = beyond due + due today, then reminders sorted by timedelta)
 - [ ] Links in task title (how can I make this work during emission so they are terminal clickable?)
 - [ ] Add colors for headings / paths / dates
+- [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Subtasks
-- [ ] Highlight tags
 - [ ] Recurring tasks
 - [ ] Cancelled tasks
+- [ ] Highlight tags
+- [ ] Search by tags
 - [ ] Use created dates to figure out tasks that been languishing
 
 ### Markdown Parser
