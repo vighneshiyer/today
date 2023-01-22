@@ -1,12 +1,12 @@
 import pytest
 from datetime import date
 
-from today.task import Task, parse_heading, handle_headings_stack, parse_markdown, extract_date_defns,\
-    parse_task_title, task_should_be_displayed
+from today.task import Task
+from today.parser import parse_heading, handle_headings_stack, parse_markdown, extract_date_defns,\
+    parse_task_title
 
 
 class TestParser:
-
     def test_parse_heading(self) -> None:
         assert parse_heading("# Title") == (1, "Title")
         assert parse_heading("### **title 2**") == (3, "**title 2**")
@@ -45,16 +45,6 @@ class TestParser:
         with pytest.raises(ValueError):
             parse_task_title("task [k:1/2/2023]")
         assert parse_task_title("task [d:t] [r:t]") == Task(title="task", due_date=date.today(), reminder_date=date.today())
-
-    def test_task_should_be_displayed(self) -> None:
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 4)) is False
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 5)) is True
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 6)) is True
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), done=True), date(2022, 1, 6)) is False
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 1)) is False
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 3)) is True
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3)), date(2022, 1, 4)) is True
-        assert task_should_be_displayed(Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 3), done=True), date(2022, 1, 4)) is False
 
     def test_basic_task_parsing(self) -> None:
         assert parse_markdown(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False, line_number=1)]

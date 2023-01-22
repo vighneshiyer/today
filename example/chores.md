@@ -10,4 +10,4 @@
 
 ## Bills
 
-- [ ] Pay the electric bill [d:1/10/2022]
+- [ ] Pay the electric bill [d:1/10/2022] [r:1/4/2022]

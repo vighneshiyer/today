@@ -9,7 +9,7 @@ However, they are nice when it comes to visualization of tasks, physically movin
 I've also seen and used CLI based "task management" apps (Taskwarrior, Ultralist, Todo.txt).
 I like that these apps often have easy backup strategies, are text driven, and are usually minimal, but overall I haven't been satisfied.
 
-The CLI apps all seem to use a non-human-readable database format to store task and project descriptions such as a sqlite database or JSON.
+The CLI apps all seem to use a non-human-readable/editable database format to store task and project descriptions such as a sqlite database or JSON.
 As a result, all interaction with tasks goes through the CLI rather than a text editor directly.
 The CLI will never be as ergonomic as browsing and editing projects and tasks with vim or using a GUI.
 In other words, they are *cli-centric* rather than *file-centric*, and I think this is why GUI solutions still feel better despite the downsides.
@@ -17,17 +17,27 @@ In other words, they are *cli-centric* rather than *file-centric*, and I think t
 But, there is another way (I think).
 
 The benefit of the GUI approach is the quick editing, visualization, and readability.
-This can be achieved by putting all tasks in files with human-readable markup; my notes are just plain Markdown files and that has worked perfectly for readability and quick scanning.
-This also allows easy regrouping of tasks, moving them between projects, and editing description text in bulk, since those are easy with any text editor.
+This can be achieved by putting all tasks in files with human-readable markup (e.g. my notes are just plain Markdown files and that has worked perfectly for readability and scanning).
+This also allows regrouping of tasks, moving them between projects, and editing description text in bulk, since those are easy with any text editor.
 
-The benefit of the CLI approach is minimal bloat and a quick UI to view the daily task execution summary we want.
-To mitigate the downside of editing tasks through the CLI, I propose a *read-only* CLI where task changes are made to the files directly, which serve as the golden source of truth.
+The benefit of the CLI approach is minimal bloat and a quick UI to view the daily TODO summary we want.
+To mitigate the downside of editing tasks through the CLI, I propose a *read-only* CLI where task changes are made to the Markdown files directly, which serve as the golden source of truth.
+
+### The "Today" Strategy
+
+One common issue with task management systems is they are a great place to dump loads of tasks, but when it comes to "what should I do now?" at the start of the day, they provide little assistance.
+Often, you scroll through your projects and ad-hoc decide what to work on, or you suddenly realize I need to work on *this*.
+While you can use basic Markdown files or Trello boards to enumerate your tasks, `today` offers a directed view of what you should do *today* to counter analysis paralysis.
+
+It is based on Superproductivity's approach where, every day, you would get a list of tasks that are due or have reminders for today or earlier.
+You would then pick which tasks you want to work on today, and snooze (defer) the rest of them.
+Then you get a 'daily' view of what to do and can tick things off from there (without having to go into different boards or project Markdown files).
 
 ## Task Definitions
 
 - Tasks are kept in plain Markdown files. Each Markdown file represents a project. Ideally each project should be tightly scoped and not drag on forever.
-    - You can save Markdown files on disk in any way you want. Add nested folders to represent hierarchy.
-    - You can group tasks within a project any way you want. Add nested headings to represent hierarchy.
+    - You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
+    - You can group tasks within a project any way you want. Add nested headings to encode hierarchy.
 
 In `chores.md`:
 
@@ -69,23 +79,23 @@ In `chores.md`:
 
 ### Descriptions
 
-- You can add a description for a task directly underneath the task title. It can consist of any Markdown you want.
+- You can add a description for a task directly underneath the task title. It can consist of any Markdown you want (*except headings*).
 
 ```markdown
 - [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
 
-Here is a description paragraph. You can put any Markdown (*execpt headings*) underneath a task and it will be part of the task's description.
+Here is a description paragraph. Any text here will be part of the task's description.
 
 - Some bullets
     - A nested bullet
 
 > A quote
-
 ```
 
 ### Subtasks
 
-- Subtasks can be specified by creating a list in the task description with the specific word 'Subtasks' and adding subtasks as elements of the list. Subtasks cannot have their own descriptions, but they can have tags and created/reminder/due dates.
+- Subtasks are specified with a nested list under the main task.
+- Subtasks cannot have their own descriptions, but they can have tags and created/reminder/due dates.
     - If the main task has a created/reminder/due date, it will apply for all subtasks automatically, unless otherwise specified
     - Only one level of subtasks is supported
 
@@ -160,12 +170,18 @@ The files are the source of truth. To delete a task, just remove it from the fil
 
 ### TODO
 
-- [ ] Capture file names and line numbers
-- [ ] CLI
+- [x] Capture file names and line numbers
+- [x] CLI
+- [x] Emit due dates in CLI + how many days have elapsed
+- [ ] Emit reminder dates in CLI
+- [ ] Task description in CLI by specifying a task
+- [ ] Links in task title (how can I make this work during emission so they are terminal clickable?)
+- [ ] Add colors for headings / paths / dates
 - [ ] Subtasks
-- [ ] Links in the task title
+- [ ] Highlight tags
 - [ ] Recurring tasks
 - [ ] Cancelled tasks
+- [ ] Use created dates to figure out tasks that been languishing
 
 ### Markdown Parser
 
