@@ -4,6 +4,7 @@ from pathlib import Path
 import itertools
 from datetime import date, timedelta
 from typing import List
+import functools
 
 from rich.tree import Tree
 from rich.console import Console
@@ -11,7 +12,7 @@ from rich.markdown import Markdown
 
 from today.task import Task
 from today.parser import parse_markdown
-from today.output import task_should_be_displayed, task_summary, days, task_details
+from today.output import task_should_be_displayed, task_summary, days, task_details, task_sorter
 
 
 def run(args) -> None:
@@ -45,6 +46,9 @@ def run(args) -> None:
     task_date_limit = today + timedelta(days=args.days)
     tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
 
+    # Sort tasks by their headings and due dates
+    tasks_visible.sort(key=functools.partial(task_sorter, today=today))
+
     console = Console()
 
     # If a specific task id is given, print its description and details and exit
@@ -57,12 +61,7 @@ def run(args) -> None:
         console.print("")
         console.print(Markdown(details))
         console.print("")
-        # if len(task_desc) > 0:
-        #     console.print(Markdown(task_desc))
         sys.exit(0)
-
-    # Sort tasks by their headings and due dates
-    # TODO
 
     # Print tasks as a tree
     tree = Tree(f"[bold underline]Tasks for today ({today})[/bold underline]" +

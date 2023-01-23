@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from typing import Any, List
 
 from today.task import Task
 
@@ -10,6 +11,26 @@ def task_should_be_displayed(task: Task, date_limit: date) -> bool:
         return True
     else:
         return False
+
+
+def task_sorter(task: Task, today: date) -> Any:
+    # sort by:
+    # 1. heading path
+    # 2. past due tasks
+    # 3. tasks due today
+    # 4. tasks with reminders today or in the past
+    # 5. tasks with due/reminder dates in the future
+    keys: List[Any] = []
+    keys.append(task.path)
+    if task.due_date:
+        keys.append(task.due_date - today)
+    else:
+        keys.append(0)
+    if task.reminder_date:
+        keys.append(task.reminder_date - today)
+    else:
+        keys.append(0)
+    return keys
 
 
 def days(days: timedelta) -> str:

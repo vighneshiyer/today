@@ -19,3 +19,4 @@ Some *italics* and **bold** text.
 ## Bills
 
 - [ ] Pay the electric bill [d:1/10/2022] [r:1/4/2022]
+- [ ] Another one [d:1/10/2022] [r:1/2/2022]
