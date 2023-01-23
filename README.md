@@ -172,7 +172,9 @@ The files are the source of truth. To delete a task, just remove it from the fil
 - [x] CLI
 - [x] Emit due dates in CLI + how many days have elapsed
 - [x] Emit reminder dates in CLI
-- [ ] Task description in CLI by specifying a task
+- [x] Task description in CLI by specifying a task
+- [ ] Support Markdown in title text
+- [ ] Make the task description fancier (explicitly state title, due date, reminders, description)
 - [ ] Sort tasks by heading path and due date criticality (highest priority = beyond due + due today, then reminders sorted by timedelta)
 - [ ] Links in task title (how can I make this work during emission so they are terminal clickable?)
 - [ ] Add colors for headings / paths / dates

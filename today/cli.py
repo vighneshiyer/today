@@ -3,9 +3,12 @@ import sys
 from pathlib import Path
 import itertools
 from datetime import date, timedelta
+from typing import List
 
 from rich import print as rprint
 from rich.tree import Tree
+from rich.console import Console
+from rich.markdown import Markdown
 
 from today.task import Task
 from today.parser import parse_markdown
@@ -35,7 +38,23 @@ def run(args):
     else:
         today = date.today()
     task_date_limit = today + timedelta(days=args.days)
-    tasks = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
+    tasks: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
+
+    console = Console()
+
+    # If a specific task id is given, print its description and details and exit
+    if args.task_id is not None:
+        if args.task_id < 0 or args.task_id >= len(tasks):
+            console.print(f"The task_id {args.task_id} does not exist")
+            sys.exit(1)
+        task = tasks[args.task_id]
+        task_title = task_to_string(task, today)
+        console.print(task_title)
+        task_desc = task.description
+        if len(task_desc) > 0:
+            md = Markdown(task_desc)
+            console.print(md)
+        sys.exit(0)
 
     # Sort tasks by their headings and due dates
     # TODO
@@ -62,7 +81,7 @@ def run(args):
 
     for i, task in enumerate(tasks):
         add_to_tree(task, tree, i)
-    rprint(tree)
+    console.print(tree)
 
 
 def main():
@@ -74,7 +93,7 @@ def main():
                         help='Look ahead this number of days in the future for tasks that have reminders or are due')
     parser.add_argument('--today', type=str, required=False,
                         help='Use this date as today\'s date, e.g. --today 3/4/2022')
-    parser.add_argument('task-id', type=int, nargs='?',
+    parser.add_argument('task_id', type=int, nargs='?',
                         help='Show the description of this specific task')
 
     sys.exit(run(parser.parse_args()))
