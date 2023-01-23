@@ -1,5 +1,6 @@
 from typing import Tuple, List, Optional
 from datetime import date
+import re
 
 from today.task import Task
 
@@ -39,13 +40,16 @@ def md_checkbox(s: str) -> Optional[bool]:
         return None
 
 
+date_defn_re = re.compile(r"\[.:.")
+
+
 def extract_date_defns(title: str) -> Tuple[List[str], str]:
     date_defns: List[str] = []
 
     # remove date defns iteratively until nothing is left
-    while "[" in title:
-        start_idx = title.find('[')
-        end_idx = title.find(']')
+    while (match := date_defn_re.search(title)) is not None:
+        start_idx = title.find('[', match.start())
+        end_idx = title.find(']', match.start())
         date_defns.append(title[start_idx+1:end_idx])
         title = title.replace(title[start_idx:end_idx+2], '')
     return date_defns, title.rstrip()

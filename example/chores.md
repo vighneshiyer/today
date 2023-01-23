@@ -14,6 +14,12 @@ Some *italics* and **bold** text.
 
 > Also a quote
 
+And a link: http://google.com
+
+And a [Markdown link](https://news.ycombinator.com)
+
+- [ ] A link task (http://somelinkhere.org) and a [Markdown link](https://thing.com) [d:t]
+
 ## Cooking
 
 ## Bills

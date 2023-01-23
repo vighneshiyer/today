@@ -176,10 +176,10 @@ The files are the source of truth. To delete a task, just remove it from the fil
 - [x] Support Markdown in title text
 - [x] Make the task description fancier (explicitly state title, due date, reminders, description)
 - [x] Sort tasks by heading path and due date criticality (highest priority = beyond due + due today, then reminders sorted by timedelta)
-- [ ] Links in task title (how can I make this work during emission so they are terminal clickable?)
 - [ ] Add colors for headings / paths / dates
-- [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Subtasks
+- [ ] Links in task title (how can I make this work during emission so they are terminal clickable?)
+- [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Recurring tasks
 - [ ] Cancelled tasks
 - [ ] Highlight tags

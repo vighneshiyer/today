@@ -38,6 +38,10 @@ class TestParser:
         assert date_defns == ["c:33", "d:233", "f:5", "c:99"]
         assert title == "things #tag asdf"
 
+        date_defns2, title2 = extract_date_defns("[d:3/3] title [link](http://link.org) [f:3]")
+        assert date_defns2 == ["d:3/3", "f:3"]
+        assert title2 == "title [link](http://link.org)"
+
     def test_parse_task_title(self) -> None:
         assert parse_task_title("[d:1/1/2022] task *title* #tag [c:2/2/2022] other [r:1/4/2022] [f:1/5/2022]", today=date.today()) == \
                 Task(title="task *title* #tag other", due_date=date(2022, 1, 1),
