@@ -5,14 +5,13 @@ import itertools
 from datetime import date, timedelta
 from typing import List
 
-from rich import print as rprint
 from rich.tree import Tree
 from rich.console import Console
 from rich.markdown import Markdown
 
 from today.task import Task
 from today.parser import parse_markdown
-from today.output import task_should_be_displayed, task_summary, days
+from today.output import task_should_be_displayed, task_summary, days, task_details
 
 
 def run(args) -> None:
@@ -54,18 +53,19 @@ def run(args) -> None:
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
         task = tasks_visible[args.task_id]
-        summary = task_summary(task, today)
-        console.print(Markdown(f"{task.title} {summary}"))
-        task_desc = task.description
-        if len(task_desc) > 0:
-            console.print(Markdown(task_desc))
+        details = task_details(task, args.task_id, today)
+        console.print("")
+        console.print(Markdown(details))
+        console.print("")
+        # if len(task_desc) > 0:
+        #     console.print(Markdown(task_desc))
         sys.exit(0)
 
     # Sort tasks by their headings and due dates
     # TODO
 
     # Print tasks as a tree
-    tree = Tree(f"Tasks for Today {today}" +
+    tree = Tree(f"[bold underline]Tasks for today ({today})[/bold underline]" +
                 ("" if args.days == 0 else f" (+{days(timedelta(days=args.days))})"))
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
@@ -86,7 +86,10 @@ def run(args) -> None:
 
     for i, task in enumerate(tasks_visible):
         add_to_tree(task, tree, i)
+
+    console.print("")
     console.print(tree)
+    console.print("")
 
 
 def main():
