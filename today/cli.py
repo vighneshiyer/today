@@ -15,21 +15,21 @@ from today.parser import parse_markdown
 from today.output import task_should_be_displayed, task_to_string, days
 
 
-def run(args):
+def run(args) -> None:
     if args.dir:
         assert Path(args.dir).is_dir()
         root = Path(args.dir)
     else:
         root = Path.cwd()
     md_files = list(root.resolve().glob("*.md"))
-    tasks = [parse_markdown(file.read_text().split('\n')) for file in md_files]
+    tasks_by_file: List[List[Task]] = [parse_markdown(file.read_text().split('\n')) for file in md_files]
     # Set each task's file
-    for filepath, tasklist in zip(md_files, tasks):
+    for filepath, tasklist in zip(md_files, tasks_by_file):
         for task in tasklist:
             task.file_path = filepath
 
     # Flatten the task list
-    tasks = list(itertools.chain(*tasks))
+    tasks: List[Task] = list(itertools.chain(*tasks_by_file))
 
     # Only look at tasks that have a due/reminder date on today or number of 'days' in the future
     if args.today:
@@ -38,16 +38,16 @@ def run(args):
     else:
         today = date.today()
     task_date_limit = today + timedelta(days=args.days)
-    tasks: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
+    tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
 
     console = Console()
 
     # If a specific task id is given, print its description and details and exit
     if args.task_id is not None:
-        if args.task_id < 0 or args.task_id >= len(tasks):
+        if args.task_id < 0 or args.task_id >= len(tasks_visible):
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
-        task = tasks[args.task_id]
+        task = tasks_visible[args.task_id]
         task_title = task_to_string(task, today)
         console.print(task_title)
         task_desc = task.description
@@ -73,11 +73,11 @@ def run(args):
             if task.path[0] in labels:  # The first heading has been found, continue to traverse down its children
                 first_heading = task.path[0]
                 task.path = task.path[1:]
-                add_to_tree(task, tree.children[labels.index(first_heading)], task_idx)
+                return add_to_tree(task, tree.children[labels.index(first_heading)], task_idx)
             else:  # The first heading doesn't exist, create it and traverse down its children
                 child = tree.add(task.path[0])
                 task.path = task.path[1:]
-                add_to_tree(task, child, task_idx)
+                return add_to_tree(task, child, task_idx)
 
     for i, task in enumerate(tasks):
         add_to_tree(task, tree, i)

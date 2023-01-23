@@ -20,6 +20,7 @@ def days(days: timedelta) -> str:
 
 
 def task_to_string(task: Task, today: date) -> str:
+    assert task.due_date is not None
     if task.due_date == today:
         return f"{task.title} [Due today]"
     elif task.due_date > today:
@@ -31,8 +32,8 @@ def task_to_string(task: Task, today: date) -> str:
             elif task.reminder_date and task.reminder_date == today:
                 return f"{task.title} [Reminder today] [Due in {days(due_delta)}]"
             else:
-                reminder_delta: timedelta = today - task.reminder_date
-                return f"{task.title} [Reminder {days(reminder_delta)} ago] [Due in {days(due_delta)}]"
+                reminder_delta_inv: timedelta = today - task.reminder_date
+                return f"{task.title} [Reminder {days(reminder_delta_inv)} ago] [Due in {days(due_delta)}]"
         else:
             return f"{task.title} [Due in {days(due_delta)}]"
     else:
