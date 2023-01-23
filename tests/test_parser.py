@@ -39,12 +39,13 @@ class TestParser:
         assert title == "things #tag asdf"
 
     def test_parse_task_title(self) -> None:
-        assert parse_task_title("[d:1/1/2022] task title #tag [c:2/2/2022] other [r:1/4/2022] [f:1/5/2022]") == \
-                Task(title="task title #tag other", due_date=date(2022, 1, 1),
+        assert parse_task_title("[d:1/1/2022] task *title* #tag [c:2/2/2022] other [r:1/4/2022] [f:1/5/2022]", today=date.today()) == \
+                Task(title="task *title* #tag other", due_date=date(2022, 1, 1),
                      created_date=date(2022, 2, 2), reminder_date=date(2022, 1, 4), finished_date=date(2022, 1, 5))
         with pytest.raises(ValueError):
-            parse_task_title("task [k:1/2/2023]")
-        assert parse_task_title("task [d:t] [r:t]") == Task(title="task", due_date=date.today(), reminder_date=date.today())
+            parse_task_title("task [k:1/2/2023]", date.today())
+        assert parse_task_title("task [d:t] [r:t]", date.today()) == \
+               Task(title="task", due_date=date.today(), reminder_date=date.today())
 
     def test_basic_task_parsing(self) -> None:
         assert parse_markdown(["- [ ] Task 1"]) == [Task(path=[], title="Task 1", done=False, line_number=1)]
@@ -67,7 +68,7 @@ Description for task 1
 
 - [x] Task 2
 """
-        result = parse_markdown(tasks_with_desc.split('\n'))
+        result = parse_markdown(tasks_with_desc.split('\n'), date.today())
         assert result == [
             Task(path=["Tasks"], title="Task 1", done=False, line_number=3,
                  description="Description for task 1\n\n> quote block\n>\n> another line", due_date=date(2023, 2, 3)),
@@ -85,7 +86,7 @@ Description for task 1
 
 - [ ] Task 4
 """
-        result = parse_markdown(bullet_tasks.split('\n'))
+        result = parse_markdown(bullet_tasks.split('\n'), date.today())
         assert result == [
             Task(path=["Tasks"], title="Task 1", done=False, line_number=2),
             Task(path=["Tasks"], title="Task 2", done=True, line_number=3),

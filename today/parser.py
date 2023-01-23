@@ -51,14 +51,14 @@ def extract_date_defns(title: str) -> Tuple[List[str], str]:
     return date_defns, title.rstrip()
 
 
-def parse_task_title(title: str) -> Task:
+def parse_task_title(title: str, today: date) -> Task:
     date_defns, task_title = extract_date_defns(title)
     t = Task(title=task_title)
     for defn in date_defns:
         prefix = defn[0]
         assert defn[1] == ":"
         if defn[2:] == "t":
-            date_value = date.today()
+            date_value = today
         else:
             date_split = [int(d) for d in defn[2:].split('/')]
             date_value = date(year=date_split[2], month=date_split[0], day=date_split[1])
@@ -75,7 +75,7 @@ def parse_task_title(title: str) -> Task:
     return t
 
 
-def parse_markdown(md: List[str]) -> List[Task]:
+def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
     headings_stack: List[str] = []
     current_task: Optional[Task] = None
     tasks: List[Task] = []
@@ -91,7 +91,7 @@ def parse_markdown(md: List[str]) -> List[Task]:
             if task_status is not None:
                 if current_task is not None:
                     tasks.append(current_task)
-                current_task = parse_task_title(line[len("- [ ] "):])
+                current_task = parse_task_title(line[len("- [ ] "):], today)
                 current_task.path = headings_stack.copy()
                 current_task.done = task_status
                 current_task.line_number = i + 1

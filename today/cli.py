@@ -12,18 +12,29 @@ from rich.markdown import Markdown
 
 from today.task import Task
 from today.parser import parse_markdown
-from today.output import task_should_be_displayed, task_to_string, days
+from today.output import task_should_be_displayed, task_summary, days
 
 
 def run(args) -> None:
+    # Fetch Markdown task files
     if args.dir:
         assert Path(args.dir).is_dir()
         root = Path(args.dir)
     else:
         root = Path.cwd()
     md_files = list(root.resolve().glob("*.md"))
-    tasks_by_file: List[List[Task]] = [parse_markdown(file.read_text().split('\n')) for file in md_files]
-    # Set each task's file
+
+    # Use the mocked 'today' date if requested, else use the actual date
+    if args.today:
+        mock_today_split = args.today.split('/')
+        today = date(int(mock_today_split[2]), int(mock_today_split[0]), int(mock_today_split[1]))
+    else:
+        today = date.today()
+
+    # Parse each Markdown task file
+    tasks_by_file: List[List[Task]] = [parse_markdown(file.read_text().split('\n'), today=today) for file in md_files]
+
+    # Set each task's file path
     for filepath, tasklist in zip(md_files, tasks_by_file):
         for task in tasklist:
             task.file_path = filepath
@@ -32,11 +43,6 @@ def run(args) -> None:
     tasks: List[Task] = list(itertools.chain(*tasks_by_file))
 
     # Only look at tasks that have a due/reminder date on today or number of 'days' in the future
-    if args.today:
-        mock_today_split = args.today.split('/')
-        today = date(int(mock_today_split[2]), int(mock_today_split[0]), int(mock_today_split[1]))
-    else:
-        today = date.today()
     task_date_limit = today + timedelta(days=args.days)
     tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
 
@@ -45,11 +51,12 @@ def run(args) -> None:
     # If a specific task id is given, print its description and details and exit
     if args.task_id is not None:
         if args.task_id < 0 or args.task_id >= len(tasks_visible):
+            print(len(tasks_visible))
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
         task = tasks_visible[args.task_id]
-        task_title = task_to_string(task, today)
-        console.print(task_title)
+        summary = task_summary(task, today)
+        console.print(summary)
         task_desc = task.description
         if len(task_desc) > 0:
             md = Markdown(task_desc)
@@ -65,7 +72,7 @@ def run(args) -> None:
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
         if len(task.path) == 0:  # Base case
-            tree.add(f"{task_idx}) {task_to_string(task, today)}")
+            tree.add(Markdown(f"{task_idx} - {task.title} {task_summary(task, today)}"))
             return tree
         else:
             # Try to find the first heading in the current tree's children
@@ -79,7 +86,7 @@ def run(args) -> None:
                 task.path = task.path[1:]
                 return add_to_tree(task, child, task_idx)
 
-    for i, task in enumerate(tasks):
+    for i, task in enumerate(tasks_visible):
         add_to_tree(task, tree, i)
     console.print(tree)
 
