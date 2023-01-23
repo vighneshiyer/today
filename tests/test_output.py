@@ -11,6 +11,7 @@ from today.output import task_should_be_displayed, task_summary
 def remove_control_characters(s):
     return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
 
+
 class TestOutput:
     def test_task_should_be_displayed(self) -> None:
         assert task_should_be_displayed(Task(due_date=date(2022, 1, 5)), date(2022, 1, 4)) is False

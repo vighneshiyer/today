@@ -51,16 +51,14 @@ def run(args) -> None:
     # If a specific task id is given, print its description and details and exit
     if args.task_id is not None:
         if args.task_id < 0 or args.task_id >= len(tasks_visible):
-            print(len(tasks_visible))
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
         task = tasks_visible[args.task_id]
         summary = task_summary(task, today)
-        console.print(summary)
+        console.print(Markdown(f"{task.title} {summary}"))
         task_desc = task.description
         if len(task_desc) > 0:
-            md = Markdown(task_desc)
-            console.print(md)
+            console.print(Markdown(task_desc))
         sys.exit(0)
 
     # Sort tasks by their headings and due dates
