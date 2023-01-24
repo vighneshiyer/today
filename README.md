@@ -116,7 +116,7 @@ I need to get this done soon. This is the main task description.
 [x] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023] [f:2/28/2023]
 ```
 
-### Recurring Tasks
+### Recurring Tasks (Not Yet Supported)
 
 - A task can be made recurring by specifying a `[recur:]` string in the task title.
     - Recurring tasks cannot have any subtasks, but they can have a description
@@ -133,36 +133,50 @@ I need to get this done soon. This is the main task description.
 
 ## Today
 
-The core CLI command is `today`. Running `today` will 
+The core CLI command is `today`.
+Running `today` will parse all the Markdown files in the current directory, and display all the tasks that are due or have reminders for today (or in the past).
+To select a directory that contains the Markdown task files, use `today --dir /path/to/md/files`.
 
-- will be placed in a "today" queue for you to review. The due date / reminder date can be changed if you wish to defer the task.
+This will give you a list of tasks to work on, ordered by alphabetical heading category and criticality of due/reminder dates.
 
-- Every day, you can get a view of the tasks you are to complete or at least review.
-- `today` is a READ-ONLY view of the tasks scheduled for today
+To display the details of a specific task, provide its task number e.g. `today 3`.
+
+To look ahead 10 days in advance for tasks that are due or have reminders, do `today --days 10`.
+
+- Recap: `today` is a READ-ONLY view of the tasks scheduled for today
     - The only way to make changes is to directly change the files
     - There is no intermediary database
     - The files are the golden source of truth!
 
 ### Completing a Task
 
-The files are the source of truth. If you've completed a task, mark it complete by checking its box.
+If you've completed a task, mark it complete by checking its box.
 
 ### Editing a Task
 
-The files are the source of truth. To edit a task's description, title, or due date, edit the file directly.
+To edit a task's description, title, or due date, edit the file defining the task.
 
 ### Deleting / Archiving a Task
 
-The files are the source of truth. To delete a task, just remove it from the file. To "archive" it, just remove its due date or mark it as completed and move it around in the file to an "Archived" section (or whatever you want).
+To delete a task, just remove it from the Markdown file that defined it.
+
+To "archive" a task, just remove its due date.
+You can also mark the task as completed, or move it around to an "Archived" section (or whatever you want).
 
 ### Moving Tasks Across Projects
 
+Just copy a task string from one Markdown file and paste it in another one.
+No GUI fiddling necessary.
+
 ## Limitations
 
-- Time tracking
-- Task History / Burndown rate
-- Attachments
-- Syncing / phone editing
+- **Time tracking**: since there is no emphermal task state, it may be hard to record time tracking info in an automated way to the task Markdown
+- **Task history / burndown rate**: there is no way to enforce specification of a 'finish' date for a task, so it is not possible in general to calculate a burndown rate
+
+In general, I think these 'quantification' things are mostly useless and can often be distracting - just focus on what needs to get done today.
+
+- **Attachments**: there is no way to 'attach' a PDF or image to a task, unless it is a URL.
+- **Syncing / phone editing**: version control is easy, but live syncing and collaborative editing of Markdown task files may be difficult without a Markdown CRDT. Similarly, editing files on your phone via raw text is harder than with a nice GUI.
 
 ## Dev Notes
 
@@ -183,16 +197,17 @@ The files are the source of truth. To delete a task, just remove it from the fil
     - If a task has only a reminder date, it should be visible via lookahead. Also once the reminder date has passed and the task incomplete, the reminder should still be active.
         - Reminder only tasks are useful for tasks that are never "due" since you can't specify a date ahead of time, rather you just need to be reminded every now and then to check it
 - [x] Fix task sorting with more tests
-- [ ] Subtasks
+- [x] Subtasks
+- [x] Cancelled tasks
 - [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Add colors for headings / paths / dates
 - [ ] Recurring tasks
-- [ ] Cancelled tasks
 - [ ] Highlight tags
 - [ ] Search by tags
-- [ ] Support headings with Markdown
 - [ ] Use created dates to figure out tasks that been languishing
+- [ ] Show subtasks that are done in the visible subtasks (with a checkmark)
 - [ ] Generalize created/due/reminder/finish dates - lots of duplicated logic
+- [ ] Support headings with Markdown (tough to combine Markdown (since it is not necessarily always inline) and Console Markup)
 
 ### Markdown Parser
 

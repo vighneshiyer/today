@@ -61,6 +61,16 @@ def run(args) -> None:
         console.print("")
         console.print(Markdown(details))
         console.print("")
+
+        if len(task.subtasks) > 0:
+            console.print(Markdown(f"**Subtasks**:"))
+            console.print("")
+        for subtask in task.subtasks:
+            subtask_summary = task_summary(subtask, today)
+            console.print(Markdown(f"{subtask.title} {subtask_summary}"))
+        if len(task.subtasks) > 0:
+            console.print("")
+
         sys.exit(0)
 
     # Print tasks as a tree
@@ -69,7 +79,7 @@ def run(args) -> None:
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
         if len(task.path) == 0:  # Base case
-            parent = tree.add(Markdown(f"{task_idx} - {task.title} {task_summary(task, today)}"))
+            parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task_summary(task, today)}"))
             if task.subtasks:
                 for subtask in task.subtasks:
                     parent.add(Markdown(f"{subtask.title} {task_summary(subtask, today)}"))

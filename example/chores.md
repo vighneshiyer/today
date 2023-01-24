@@ -1,6 +1,6 @@
 # Chores
 
-## Cleaning
+## Cleaning *italics*
 
 - [ ] Clean the *countertops* [d:1/11/2022]
 - [ ] ***Wash my car*** [d:1/10/2022]
@@ -25,6 +25,8 @@ A Code block
 ```scala
 Seq(1, 2, 3).map(_ + 1).reduce(_ + _)
 ```
+
+- [ ] ~~Cancelled task~~
 
 ## Cooking
 
