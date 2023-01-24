@@ -45,7 +45,6 @@ def run(args) -> None:
     # Only look at tasks that have a due/reminder date on today or number of 'days' in the future
     task_date_limit = today + timedelta(days=args.days)
     tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
-    print(tasks_visible)
 
     # Sort tasks by their headings and due dates
     tasks_visible.sort(key=functools.partial(task_sorter, today=today))

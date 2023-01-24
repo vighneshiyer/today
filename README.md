@@ -191,6 +191,7 @@ The files are the source of truth. To delete a task, just remove it from the fil
 - [ ] Search by tags
 - [ ] Support headings with Markdown
 - [ ] Use created dates to figure out tasks that been languishing
+- [ ] Generalize created/due/reminder/finish dates - lots of duplicated logic
 
 ### Markdown Parser
 

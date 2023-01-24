@@ -4,6 +4,10 @@ import re
 
 from today.task import Task
 
+date_defn_re = re.compile(r"\[.:.")
+task_re = re.compile(r"^- \[[ xX]\] ")
+subtask_re = re.compile(r"^[ \t]+- \[[ xX]\] ")
+
 
 def parse_heading(s: str) -> Tuple[int, str]:
     for i in range(len(s)):
@@ -28,19 +32,6 @@ def handle_headings_stack(headings_stack: List[str], heading: str) -> List[str]:
             headings_stack.pop()
     headings_stack.append(heading_str)
     return headings_stack
-
-
-def md_checkbox(s: str) -> Optional[bool]:
-    # None = not a checkbox, True = checked, False = unchecked
-    if s.startswith("[ ]"):
-        return False
-    elif s.startswith("[x]") or s.startswith("[X]"):
-        return True
-    else:
-        return None
-
-
-date_defn_re = re.compile(r"\[.:.")
 
 
 def extract_date_defns(title: str) -> Tuple[List[str], str]:
@@ -79,6 +70,16 @@ def parse_task_title(title: str, today: date) -> Task:
     return t
 
 
+def md_checkbox(s: str) -> Optional[bool]:
+    # None = not a checkbox, True = checked, False = unchecked
+    if s.startswith("[ ]"):
+        return False
+    elif s.startswith("[x]") or s.startswith("[X]"):
+        return True
+    else:
+        return None
+
+
 def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
     headings_stack: List[str] = []
     current_task: Optional[Task] = None
@@ -90,7 +91,7 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
             if current_task is not None:
                 tasks.append(current_task)
                 current_task = None
-        elif line.startswith("- ["):  # This might be a checkbox
+        elif task_re.match(line):  # This is a Markdown checkbox (a task)
             task_status = md_checkbox(line[len("- "):])
             if task_status is not None:
                 if current_task is not None:
@@ -99,8 +100,26 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
                 current_task.path = headings_stack.copy()
                 current_task.done = task_status
                 current_task.line_number = i + 1
-            else:
-                assert False
+            else:  # Malformed Markdown checkbox
+                raise ValueError(f"Malformed Markdown checkbox on line {i}: {line}")
+        elif (match := subtask_re.match(line)) is not None:
+            if current_task is None:
+                raise ValueError(f"Encountered subtask without a main task on line {i}: {line}")
+            subtask_status = md_checkbox(line[line.index('['):])
+            assert subtask_status is not None  # The checkbox must not be malformed
+            subtask = parse_task_title(line[match.end(0):], today)
+            subtask.path = headings_stack.copy()
+            subtask.done = subtask_status
+            subtask.line_number = i + 1
+            if not subtask.due_date and current_task.due_date:
+                subtask.due_date = current_task.due_date
+            if not subtask.reminder_date and current_task.reminder_date:
+                subtask.reminder_date = current_task.reminder_date
+            if not subtask.finished_date and current_task.finished_date:
+                subtask.finished_date = current_task.finished_date
+            if not subtask.created_date and current_task.created_date:
+                subtask.created_date = current_task.created_date
+            current_task.subtasks.append(subtask)
         elif len(line) == 0 and current_task is None:
             continue
         else:  # This is part of the description of a current task
@@ -110,7 +129,7 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
     if current_task is not None:
         tasks.append(current_task)
 
-    # Post-process descriptions - remove trailing or leading newlines
+    # Post-process descriptions - remove trailing or leading newlines and spaces
     for i in range(len(tasks)):
-        tasks[i].description = tasks[i].description.strip("\n")
+        tasks[i].description = tasks[i].description.strip("\n ")
     return tasks

@@ -97,3 +97,25 @@ Description for task 1
             Task(path=["Tasks"], title="Task 3", done=False, description="- Bullets\n    - Nested bullets", line_number=4),
             Task(path=["Tasks"], title="Task 4", done=False, line_number=9)
         ]
+
+    def test_subtask_parsing(self) -> None:
+        subtasks = """# Tasks
+
+- [ ] Main task [d:1/10/2022] [r:1/3/2022]
+    - [ ] Subtask 1 [d:t]
+    - [ ] Subtask 2 
+    
+Description
+"""
+        today = date.today()
+        result = parse_markdown(subtasks.split('\n'), today)
+        assert result == [
+            Task(path=["Tasks"], title="Main task", done=False, line_number=3,
+                 description="Description", due_date=date(2022, 1, 10), reminder_date=date(2022, 1, 3),
+                 subtasks=[
+                     Task(path=["Tasks"], title="Subtask 1", done=False, line_number=4,
+                          due_date=today, reminder_date=date(2022, 1, 3)),
+                     Task(path=["Tasks"], title="Subtask 2", done=False, line_number=5,
+                          due_date=date(2022, 1, 10), reminder_date=date(2022, 1, 3))
+                 ])
+        ]
