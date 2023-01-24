@@ -1,8 +1,9 @@
 from datetime import date
 import unicodedata
+import functools
 
 from today.task import Task
-from today.output import task_should_be_displayed, task_summary
+from today.output import task_should_be_displayed, task_summary, task_sorter
 
 
 def remove_control_characters(s):
@@ -61,3 +62,32 @@ class TestOutput:
                "[**Due 1 day ago**]"
         assert task_summary(task, today=date(2022, 1, 10)) == \
                "[**Due 5 days ago**]"
+
+    def test_task_sorting(self) -> None:
+        today = date(2022, 1, 6)
+        due_1_5 = Task(title="due_1_5", due_date=date(2022, 1, 5))
+        remind_1_5 = Task(title="remind_1_5", reminder_date=date(2022, 1, 5))
+        due_1_6 = Task(title="due_1_6", due_date=date(2022, 1, 6))
+        remind_1_6 = Task(title="remind_1_6", reminder_date=date(2022, 1, 6))
+        due_1_7 = Task(title="due_1_7", due_date=date(2022, 1, 7))
+
+        # sort by:
+        # 1. heading path (easy)
+
+        # 2. past due tasks
+        # 3. tasks due today
+        # Task due at 1/5 is past due vs the task due at 1/6 (due today)
+        assert sorted([due_1_5, due_1_6], key=functools.partial(task_sorter, today=today)) == \
+               [due_1_5, due_1_6]
+        assert sorted([due_1_6, due_1_5], key=functools.partial(task_sorter, today=today)) == \
+               [due_1_5, due_1_6]
+
+        # 4. tasks with reminders today or in the past
+        assert sorted([due_1_6, due_1_5, remind_1_5, remind_1_6], key=functools.partial(task_sorter, today=today)) == \
+               [remind_1_5, due_1_5, due_1_6, remind_1_6]
+        assert sorted([remind_1_5, remind_1_6], key=functools.partial(task_sorter, today=today)) == \
+               [remind_1_5, remind_1_6]
+
+        # 5. tasks with due/reminder dates in the future
+        assert sorted([due_1_7, due_1_5, remind_1_5, remind_1_6], key=functools.partial(task_sorter, today=today)) == \
+               [remind_1_5, due_1_5, remind_1_6, due_1_7]

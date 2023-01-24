@@ -20,6 +20,12 @@ And a [Markdown link](https://news.ycombinator.com)
 
 - [ ] A link task (http://somelinkhere.org) and a [Markdown link](https://thing.com) [d:t]
 
+A Code block
+
+```scala
+Seq(1, 2, 3).map(_ + 1).reduce(_ + _)
+```
+
 ## Cooking
 
 ## Bills
@@ -28,6 +34,6 @@ And a [Markdown link](https://news.ycombinator.com)
 - [ ] Another one [d:1/10/2022] [r:1/2/2022]
 - [ ] Reminder only [r:1/6/2022]
 - [ ] Reminder always today [r:t]
-    - [ ] Subtask 1
+    - [ ] Subtask 1 `with some code`
     - [ ] Subtask 2
     - [ ] Subtask 3

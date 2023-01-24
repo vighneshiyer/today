@@ -69,7 +69,10 @@ def run(args) -> None:
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
         if len(task.path) == 0:  # Base case
-            tree.add(Markdown(f"{task_idx} - {task.title} {task_summary(task, today)}"))
+            parent = tree.add(Markdown(f"{task_idx} - {task.title} {task_summary(task, today)}"))
+            if task.subtasks:
+                for subtask in task.subtasks:
+                    parent.add(Markdown(f"{subtask.title} {task_summary(subtask, today)}"))
             return tree
         else:
             # Try to find the first heading in the current tree's children

@@ -182,6 +182,7 @@ The files are the source of truth. To delete a task, just remove it from the fil
     - If a task has both due and reminder dates, the due date subsumes the reminder once the task is actually due. While the reminder is active, both the reminder and due dates show up with the task.
     - If a task has only a reminder date, it should be visible via lookahead. Also once the reminder date has passed and the task incomplete, the reminder should still be active.
         - Reminder only tasks are useful for tasks that are never "due" since you can't specify a date ahead of time, rather you just need to be reminded every now and then to check it
+- [x] Fix task sorting with more tests
 - [ ] Subtasks
 - [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Add colors for headings / paths / dates
