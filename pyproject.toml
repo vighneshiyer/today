@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "today"
-version = "0.0.1"
+name = "todo-today"
+version = "0.0.0"
 description = "A file-centric task management app"
 authors = ["Vighnesh Iyer <vighnesh.iyer@gmail.com>"]
 maintainers = ["Vighnesh Iyer <vighnesh.iyer@gmail.com>"]

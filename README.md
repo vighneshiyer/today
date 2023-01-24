@@ -1,5 +1,9 @@
 # Today: A File-Centric Task Management System
 
+![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg)
+
+`pip install todo-today`
+
 ## Motivation
 
 I've used GUI based "task management" apps in the past, such as Asana, Trello, Google Tasks, and recently Superproductivity.
