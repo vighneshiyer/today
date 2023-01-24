@@ -1,9 +1,6 @@
 from datetime import date
 import unicodedata
 
-from rich.console import Console
-from rich.markdown import Markdown
-
 from today.task import Task
 from today.output import task_should_be_displayed, task_summary
 
@@ -36,6 +33,19 @@ class TestOutput:
                "[**Due 1 day ago**]"
         assert task_summary(task, today=date(2022, 1, 10)) == \
                "[**Due 5 days ago**]"
+
+        # Task with only reminder date
+        task = Task(reminder_date=date(2022, 1, 5), title="Task 1")
+        assert task_summary(task, today=date(2022, 1, 5)) == \
+               "[**Reminder today**]"
+        assert task_summary(task, today=date(2022, 1, 4)) == \
+               "[Reminder in 1 day]"
+        assert task_summary(task, today=date(2022, 1, 1)) == \
+               "[Reminder in 4 days]"
+        assert task_summary(task, today=date(2022, 1, 6)) == \
+               "[**Reminder 1 day ago**]"
+        assert task_summary(task, today=date(2022, 1, 10)) == \
+               "[**Reminder 5 days ago**]"
 
         # Task with due and reminder dates
         task = Task(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 1), title="Task 1")

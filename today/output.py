@@ -25,11 +25,11 @@ def task_sorter(task: Task, today: date) -> Any:
     if task.due_date:
         keys.append(task.due_date - today)
     else:
-        keys.append(0)
+        keys.append(timedelta(days=0))
     if task.reminder_date:
         keys.append(task.reminder_date - today)
     else:
-        keys.append(0)
+        keys.append(timedelta(days=0))
     return keys
 
 
@@ -52,17 +52,21 @@ def date_relative_to_today(d: date, today: date, prefix: str = "") -> str:
 
 
 def task_summary(task: Task, today: date) -> str:  # Returns a Markdown string
-    assert task.due_date is not None
-    due_msg = date_relative_to_today(task.due_date, today, prefix="Due ")
+    if task.due_date:
+        due_msg = date_relative_to_today(task.due_date, today, prefix="Due ")
+    if task.reminder_date:
+        reminder_msg = date_relative_to_today(task.reminder_date, today, prefix="Reminder ")
 
-    if task.due_date > today:
-        if task.reminder_date:
-            reminder_msg = date_relative_to_today(task.reminder_date, today, prefix="Reminder ")
+    if task.reminder_date and not task.due_date:  # Reminder only
+        return f"[{reminder_msg}]"
+    elif task.due_date and not task.reminder_date:  # Due date only
+        return f"[{due_msg}]"
+    else:  # Both due and reminder dates
+        assert task.due_date
+        if task.due_date > today:  # Only show reminder if task is not overdue
             return f"[{reminder_msg}] [{due_msg}]"
         else:
             return f"[{due_msg}]"
-    else:
-        return f"[{due_msg}]"
 
 
 def task_details(task: Task, task_id: int, today: date) -> str:  # Returns a Markdown string

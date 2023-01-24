@@ -45,6 +45,7 @@ def run(args) -> None:
     # Only look at tasks that have a due/reminder date on today or number of 'days' in the future
     task_date_limit = today + timedelta(days=args.days)
     tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, task_date_limit)]
+    print(tasks_visible)
 
     # Sort tasks by their headings and due dates
     tasks_visible.sort(key=functools.partial(task_sorter, today=today))
@@ -79,7 +80,7 @@ def run(args) -> None:
                 task.path = task.path[1:]
                 return add_to_tree(task, tree.children[labels.index(first_heading)], task_idx)
             else:  # The first heading doesn't exist, create it and traverse down its children
-                child = tree.add(task.path[0])
+                child = tree.add(f"{task.path[0]}")
                 task.path = task.path[1:]
                 return add_to_tree(task, child, task_idx)
 
