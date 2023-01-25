@@ -1,8 +1,8 @@
 # Today: A File-Centric Task Management System
 
-![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg)
+![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/todo-today-cli.svg)](https://badge.fury.io/py/todo-today-cli)
 
-`pip install todo-today`
+To install: `pip install todo-today-cli`
 
 ## Motivation
 
