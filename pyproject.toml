@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "todo-today"
+name = "todo-today-cli"
 version = "0.0.0"
 description = "A file-centric task management app"
 authors = ["Vighnesh Iyer <vighnesh.iyer@gmail.com>"]
