@@ -117,3 +117,6 @@ def main():
                         help='Show the description of this specific task')
 
     sys.exit(run(parser.parse_args()))
+
+if __name__ == "__main__":
+    main()

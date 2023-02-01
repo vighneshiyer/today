@@ -122,9 +122,11 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
             current_task.subtasks.append(subtask)
         elif len(line) == 0 and current_task is None:
             continue
-        else:  # This is part of the description of a current task
-            assert current_task is not None
-            current_task.description = current_task.description + "\n" + line
+        else:
+            if current_task is None:  # Unparsed text right after a header
+                continue
+                #raise ValueError(f"Encountered description not associated with a task on line {i}: {line}")
+            current_task.description = current_task.description + "\n" + line  # This is part of the description of a current task
 
     if current_task is not None:
         tasks.append(current_task)
