@@ -172,6 +172,40 @@ You can also mark the task as completed, or move it around to an "Archived" sect
 Just copy a task string from one Markdown file and paste it in another one.
 No GUI fiddling necessary.
 
+## i3 Integration
+
+Just displaying the tasks that need to be done today is fine, but often we want more direction about what we should be doing *right now* in contrast to *merely today*.
+There is another included CLI program `start` which given a task id, will emit the formatted task title to `/tmp/task`.
+Then this task title can be displayed prominently using your window manager's notification area.
+
+For i3 (w/ i3status and i3bar), you can add this to your `~/.config/i3status/config`:
+
+```conf
+general {
+    colors = true
+    markup = "pango"
+}
+
+order += "read_file task"
+
+read_file task {
+  format = "%content"
+  path = "/tmp/task"
+}
+```
+
+Now when you run `start <task_id>`, the task title will show up in your statusbar to remind you of what you should be working on *at this moment*.
+
+`start` takes the same command line arguments as `today`.
+If you run `start` without a task id, it will clear the task file.
+
+You may want to include aliases to `today` and `start` for your shell:
+
+```fish
+alias t 'today --dir $HOME/task_folder'
+alias s 'start --dir $HOME/task_folder'
+```
+
 ## Limitations
 
 - **Time tracking**: since there is no emphermal task state, it may be hard to record time tracking info in an automated way to the task Markdown
@@ -203,6 +237,12 @@ In general, I think these 'quantification' things are mostly useless and can oft
 - [x] Fix task sorting with more tests
 - [x] Subtasks
 - [x] Cancelled tasks
+- [x] Start CLI
+    - ~~use custom argparse Action to parse dates: https://stackoverflow.com/questions/33301000/custom-parsing-function-for-any-number-of-arguments-in-python-argparse~~
+    - [x] Unify argument parsing between the 2 programs
+    - i3 integration, use pango syntax in the /tmp/task file: https://docs.gtk.org/Pango/pango_markup.html
+- [ ] Support Markdown in Start CLI
+- [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
 - [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Add colors for headings / paths / dates
 - [ ] Recurring tasks

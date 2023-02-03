@@ -11,7 +11,8 @@ packages = [
 ]
 
 [tool.poetry.scripts]
-today = "today.cli:main"
+today = "today.today:main"
+start = "today.start:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
