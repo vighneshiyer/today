@@ -9,6 +9,10 @@ def task_should_be_displayed(task: Task, date_limit: date) -> bool:
         return True
     elif task.reminder_date and task.reminder_date <= date_limit and task.done is False:
         return True
+    elif task.subtasks and any([st.due_date and st.due_date <= date_limit and st.done is False for st in task.subtasks]):
+        return True
+    elif task.subtasks and any([st.reminder_date and st.reminder_date <= date_limit and st.done is False for st in task.subtasks]):
+        return True
     else:
         return False
 

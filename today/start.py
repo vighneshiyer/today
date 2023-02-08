@@ -16,7 +16,7 @@ def run(args) -> None:
         tasks = parse_task_files(cli_args)
         task = tasks[cli_args.task_id]
         path = " → ".join(task.path)
-        task_snippet = f"<span color='white'><span weight='bold'>Current Task -</span> {path} <span weight='bold'>-</span> {task.title}</span>"
+        task_snippet = f"<span color='white'><span weight='bold'>Current Task ({cli_args.task_id}) -</span> {path} <span weight='bold'>-</span> {task.title}</span>"
         Path("/tmp/task").write_text(task_snippet)
         # https://i3wm.org/docs/i3status.html
 

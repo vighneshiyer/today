@@ -108,7 +108,10 @@ def maybe_display_specific_task(args: CliArgs, tasks: List[Task], console: Conso
             console.print(Markdown(f"**Subtasks**:"))
         for subtask in task.subtasks:
             subtask_summary = task_summary(subtask, args.today)
-            console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
+            if subtask.done:
+                console.print(Markdown(f"- **DONE**: {subtask.title} {subtask_summary}"))
+            else:
+                console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
         if len(task.subtasks) > 0:
             console.print("")
 
@@ -125,7 +128,8 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
             parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task_summary(task, args.today)}"))
             if task.subtasks:
                 for subtask in task.subtasks:
-                    parent.add(Markdown(f"{subtask.title} {task_summary(subtask, args.today)}"))
+                    if subtask.done is False:
+                        parent.add(Markdown(f"{subtask.title} {task_summary(subtask, args.today)}"))
             return tree
         else:
             # Try to find the first heading in the current tree's children

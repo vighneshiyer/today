@@ -2,7 +2,154 @@
 
 ![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/todo-today-cli.svg)](https://badge.fury.io/py/todo-today-cli)
 
-To install: `pip install todo-today-cli`
+## Quickstart
+
+Install: `pip install todo-today-cli`
+
+Create a file (`tasks.md`) and add the following:
+
+```markdown
+# My Tasks
+
+## Household
+
+- [x] Pay the monthly bills [d:1/1/2023]
+- [ ] Sweep the floors [d:t]
+- [ ] Take out the trash [r:1/2/2023]
+
+- The trash can is outside the garage
+
+> Trash pickup is deferred until next week if it lands on NYE
+```
+
+Run `today`, and you'll get a listing of tasks that are assigned for today (sorted by Markdown headings and overdue status).
+
+```text
+Tasks for today (2023-02-06)
+└── My Tasks
+    └── Household
+        ├── 0 - Take out the trash [Reminder 35 days ago]
+        └── 1 - Sweep the floors [Due today]
+```
+
+To display the description of a task, specify its number.
+A task description can contain any Markdown.
+
+```text
+$ today 0
+
+Title: Take out the trash (id = 0)
+Reminder date: 2023-01-02 (Reminder 35 days ago)
+Description:
+
+ • The trash can is outside the garage
+
+▌ Trash pickup is deferred until next week if it lands on NYE
+```
+
+The task files are the only source of truth!
+`today` is a read-only utility to display what's planned for today.
+To mark a task complete, edit `tasks.md` and tick its Markdown checkbox.
+
+## Detailed Docs
+
+### Task Files
+
+- Tasks are kept in plain Markdown files. Each Markdown file represents a project. Ideally each project should be tightly scoped and not drag on forever.
+    - You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
+    - You can group tasks within a project any way you want. Add nested Markdown headings to encode hierarchy.
+
+### Task Definitions
+
+Tasks are designated by a top-level Markdown checkbox
+
+A task can have a created, reminder, due, and finished date by placing it in square brackets with the prefix `c:`, `r:`, `d:`, or `f:`.
+
+- The date is in `month`/`day`/`year` format
+- `t` is a shorthand date for today. For example, if a task should be due today, use: `[d:t]`
+
+You can add a description for a task underneath the task title. It can consist of any Markdown you want (*except headings*).
+
+Subtasks are specified with a nested list of checkboxes under the main task.
+
+- Subtasks cannot have their own descriptions, but they can have their own created/reminder/due dates.
+- If the main task has a created/reminder/due date, it will apply for all subtasks automatically, unless otherwise specified
+- Only one level of subtasks is supported
+
+A task can be marked complete just by checking its checkbox. You can optionally specify a completion time with a finish `f` date.
+
+Here is a complete example:
+
+```markdown
+- [x] Pay the electricity bill [d:t] [f:2/20/2023]
+- [ ] Home cleaning [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
+    - [ ] Sweep the floors [d:2/10/2023]
+    - [ ] Wipe the countertops
+    - [ ] Throw the trash
+
+Any text here will be part of the main task's description.
+
+- Some bullets
+    - A nested bullet
+
+> A quote
+```
+
+### Task Wrangling
+
+Super easy. No databases, no "state" in the task manager. Directly edit the task files.
+
+- **Adding a task**: add a Markdown checkbox to a task file
+- **Completing a task**: check the Markdown checkbox of the task you've completed
+- **Editing a task**: edit the task's description or dates in the task file
+- **Deleting a task**: remove it from the task file
+- **Archiving a task**: if the task isn't done, remove any due/reminder dates. Then, move the task to an "Archived" section of your task file (or wherever you want).
+- **Moving tasks across projects**: copy the task from one task file and paste it into another task file
+
+### The Today CLI
+
+The core CLI command is `today`.
+Running `today` will parse all the Markdown files in the current directory, and display all the tasks that are due or have reminders for today (or are overdue).
+The tasks will be ordered by heading and criticality of due/reminder dates.
+
+- To specify a directory to look for Markdown task files in, use `today --dir /path/to/md/files`.
+- To look ahead 10 days in advance for tasks that are due or have reminders, do `today --days 10`.
+- To display the details of a specific task, provide its task number e.g. `today 3`.
+- Summary: `today` is a READ-ONLY view of the tasks scheduled for today
+
+### i3 Integration
+
+Just displaying the tasks that need to be done today is fine, but often we want more direction about what we should be doing *right now* in contrast to *merely today*.
+There is another included CLI program `start` which given a task id, will emit the formatted task title to `/tmp/task`.
+Then this task title can be displayed prominently using your window manager's notification area.
+
+For i3 (w/ i3status and i3bar), you can add this to your `~/.config/i3status/config`:
+
+```conf
+general {
+    colors = true
+    markup = "pango"
+}
+
+order += "read_file task"
+
+read_file task {
+  format = "%content"
+  path = "/tmp/task"
+}
+```
+
+Now when you run `start <task_id>`, the task title will show up in your statusbar to remind you of what you should be working on *at this moment*.
+
+`start` takes the same command line arguments as `today`.
+If you run `start` without a task id, it will clear the task file.
+
+You may want to include aliases to `today` and `start` for your shell:
+
+```fish
+alias t 'today --dir $HOME/task_folder'
+alias s 'start --dir $HOME/task_folder'
+```
 
 ## Motivation
 
@@ -36,175 +183,6 @@ While you can use basic Markdown files or Trello boards to enumerate your tasks,
 It is based on Superproductivity's approach where, every day, you would get a list of tasks that are due or have reminders for today or earlier.
 You would then pick which tasks you want to work on today, and snooze (defer) the rest of them.
 Then you get a 'daily' view of what to do and can tick things off from there (without having to go into different boards or project Markdown files).
-
-## Task Definitions
-
-- Tasks are kept in plain Markdown files. Each Markdown file represents a project. Ideally each project should be tightly scoped and not drag on forever.
-    - You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
-    - You can group tasks within a project any way you want. Add nested headings to encode hierarchy.
-
-In `chores.md`:
-
-```markdown
-# Chores
-
-## Purchases
-
-## Bills
-
-## Cleaning
-```
-
-- Tasks are designated by a Markdown checkbox.
-
-```markdown
-## Cleaning
-
-- [ ] Home cleaning
-```
-
-### Tags
-
-- A task can have one or more tags, designated by hashtags in the task title. Tags are highlighted when a task is displayed, but are otherwise useless.
-
-```markdown
-- [ ] Home cleaning #cleaning #house #offline
-```
-
-### Dates
-
-- A task can have a created, due, and reminder date by placing it in square brackets with the prefix `c`, `d`, or `r`.
-    - The date is in `month`/`day`/`year` format
-    - You can also use `t` as a date. For example, to specify today as the due date, write: `[d:t]`
-
-```markdown
-- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
-```
-
-### Descriptions
-
-- You can add a description for a task directly underneath the task title. It can consist of any Markdown you want (*except headings*).
-
-```markdown
-- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
-
-Here is a description paragraph. Any text here will be part of the task's description.
-
-- Some bullets
-    - A nested bullet
-
-> A quote
-```
-
-### Subtasks
-
-- Subtasks are specified with a nested list under the main task.
-- Subtasks cannot have their own descriptions, but they can have tags and created/reminder/due dates.
-    - If the main task has a created/reminder/due date, it will apply for all subtasks automatically, unless otherwise specified
-    - Only one level of subtasks is supported
-
-```markdown
-- [ ] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023]
-    - [ ] Sweep the floors [d:2/10/2023]
-    - [ ] Wipe the countertops
-    - [ ] Throw the trash
-
-I need to get this done soon. This is the main task description.
-```
-
-### Completed Tasks
-
-- A task can be marked complete just by checking its checkbox. You can optionally specify a completion time with a finish `f` date.
-
-```markdown
-[x] Home cleaning #cleaning #house #offline [c:1/3/2023] [r:2/27/2023] [d:3/1/2023] [f:2/28/2023]
-```
-
-### Recurring Tasks (Not Yet Supported)
-
-- A task can be made recurring by specifying a `[recur:]` string in the task title.
-    - Recurring tasks cannot have any subtasks, but they can have a description
-    - Recurring tasks should not be marked complete. They will show up in your daily report and there is a CLI option to mark an instance of the task complete. This completion isn't tracked anywhere explicitly.
-    - Recurring tasks disappear after the day they are scheduled. If you forget to finish a recurring task, you must explicitly add an instance of it to a project if you wish to be reminded later.
-
-```markdown
-[ ] Daily journal [recur:daily]
-[ ] Weekly tasks [recur:Sunday]
-[ ] Monthly tasks [recur:eom]
-```
-
-- TBD: more complex recurrence descriptions, maybe use ical recur format string? This implementation also seems brittle and has many caveats - is there a better way?
-
-## Today
-
-The core CLI command is `today`.
-Running `today` will parse all the Markdown files in the current directory, and display all the tasks that are due or have reminders for today (or in the past).
-To select a directory that contains the Markdown task files, use `today --dir /path/to/md/files`.
-
-This will give you a list of tasks to work on, ordered by alphabetical heading category and criticality of due/reminder dates.
-
-To display the details of a specific task, provide its task number e.g. `today 3`.
-
-To look ahead 10 days in advance for tasks that are due or have reminders, do `today --days 10`.
-
-- Recap: `today` is a READ-ONLY view of the tasks scheduled for today
-    - The only way to make changes is to directly change the files
-    - There is no intermediary database
-    - The files are the golden source of truth!
-
-### Completing a Task
-
-If you've completed a task, mark it complete by checking its box.
-
-### Editing a Task
-
-To edit a task's description, title, or due date, edit the file defining the task.
-
-### Deleting / Archiving a Task
-
-To delete a task, just remove it from the Markdown file that defined it.
-
-To "archive" a task, just remove its due date.
-You can also mark the task as completed, or move it around to an "Archived" section (or whatever you want).
-
-### Moving Tasks Across Projects
-
-Just copy a task string from one Markdown file and paste it in another one.
-No GUI fiddling necessary.
-
-## i3 Integration
-
-Just displaying the tasks that need to be done today is fine, but often we want more direction about what we should be doing *right now* in contrast to *merely today*.
-There is another included CLI program `start` which given a task id, will emit the formatted task title to `/tmp/task`.
-Then this task title can be displayed prominently using your window manager's notification area.
-
-For i3 (w/ i3status and i3bar), you can add this to your `~/.config/i3status/config`:
-
-```conf
-general {
-    colors = true
-    markup = "pango"
-}
-
-order += "read_file task"
-
-read_file task {
-  format = "%content"
-  path = "/tmp/task"
-}
-```
-
-Now when you run `start <task_id>`, the task title will show up in your statusbar to remind you of what you should be working on *at this moment*.
-
-`start` takes the same command line arguments as `today`.
-If you run `start` without a task id, it will clear the task file.
-
-You may want to include aliases to `today` and `start` for your shell:
-
-```fish
-alias t 'today --dir $HOME/task_folder'
-alias s 'start --dir $HOME/task_folder'
-```
 
 ## Limitations
 
@@ -241,17 +219,36 @@ In general, I think these 'quantification' things are mostly useless and can oft
     - ~~use custom argparse Action to parse dates: https://stackoverflow.com/questions/33301000/custom-parsing-function-for-any-number-of-arguments-in-python-argparse~~
     - [x] Unify argument parsing between the 2 programs
     - i3 integration, use pango syntax in the /tmp/task file: https://docs.gtk.org/Pango/pango_markup.html
-- [ ] Support Markdown in Start CLI
+- [x] Do not display subtasks that are already checked off
+- [x] Write quickstart guide / simplify and shorten docs + add ToC
 - [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
+- [ ] Add coverage checker for unit tests
+- [ ] Migrate more code outside the printing logic in cli.py for unit testing
+- [ ] Support specifying subtasks in `start` CLI
+- [ ] Support Markdown in `start` CLI output (requires parsing inline Markdown and translating to pango)
 - [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
 - [ ] Add colors for headings / paths / dates
 - [ ] Recurring tasks
 - [ ] Highlight tags
 - [ ] Search by tags
 - [ ] Use created dates to figure out tasks that been languishing
-- [ ] Show subtasks that are done in the visible subtasks (with a checkmark)
 - [ ] Generalize created/due/reminder/finish dates - lots of duplicated logic
-- [ ] Support headings with Markdown (tough to combine Markdown (since it is not necessarily always inline) and Console Markup)
+- [ ] Support rendering headings with Markdown (tough to combine Markdown (since it is not necessarily always inline) and Console Markup)
+- [ ] ~~Show subtasks that are done in the visible subtasks (with a checkmark)~~ (goes against the way normal tasks work)
+
+- Recurring tasks
+    - TBD: more complex recurrence descriptions, maybe use ical recur format string? This implementation also seems brittle and has many caveats - is there a better way?
+
+```markdown
+- A task can be made recurring by specifying a `[recur:]` string in the task title.
+    - Recurring tasks cannot have any subtasks, but they can have a description
+    - Recurring tasks should not be marked complete. They will show up in your daily report and there is a CLI option to mark an instance of the task complete. This completion isn't tracked anywhere explicitly.
+    - Recurring tasks disappear after the day they are scheduled. If you forget to finish a recurring task, you must explicitly add an instance of it to a project if you wish to be reminded later.
+
+[ ] Daily journal [recur:daily]
+[ ] Weekly tasks [recur:Sunday]
+[ ] Monthly tasks [recur:eom]
+```
 
 ### Markdown Parser
 
