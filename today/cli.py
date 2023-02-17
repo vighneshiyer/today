@@ -71,7 +71,7 @@ def parse_args(parser: argparse.ArgumentParser, args: List[str]) -> CliArgs:
 
 def parse_task_files(args: CliArgs) -> List[Task]:
     # Fetch Markdown task files
-    md_files = list(args.task_dir.glob("*.md"))
+    md_files = list(args.task_dir.glob("**/*.md"))
 
     # Parse each Markdown task file
     tasks_by_file: List[List[Task]] = [parse_markdown(file.read_text().split('\n'), today=args.today) for file in md_files]
@@ -122,7 +122,6 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
     # Print tasks as a tree
     tree = Tree(f"[bold underline]Tasks for today ({args.today})[/bold underline]" +
                 ("" if args.lookahead_days == timedelta(0) else f" (+{days(args.lookahead_days)})"))
-
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
         if len(task.path) == 0:  # Base case
             parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task_summary(task, args.today)}"))
