@@ -55,13 +55,16 @@ To mark a task complete, edit `tasks.md` and tick its Markdown checkbox.
 
 ### Task Files
 
-- Tasks are kept in plain Markdown files. Each Markdown file represents a project. Ideally each project should be tightly scoped and not drag on forever.
-    - You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
-    - You can group tasks within a project any way you want. Add nested Markdown headings to encode hierarchy.
+Tasks are kept in plain Markdown files.
+Each Markdown file represents a project.
+Ideally each project should be tightly scoped and not drag on forever.
+
+- You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
+- You can group tasks within a task file any way you want. Add nested Markdown headings to encode hierarchy.
 
 ### Task Definitions
 
-Tasks are designated by a top-level Markdown checkbox
+Tasks are defined with a list item that starts with a Markdown checkbox.
 
 A task can have a created, reminder, due, and finished date by placing it in square brackets with the prefix `c:`, `r:`, `d:`, or `f:`.
 

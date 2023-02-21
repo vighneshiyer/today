@@ -21,7 +21,6 @@ def run(args) -> None:
         path = " → ".join(task.path)
         current_task = f"<span weight='bold'> Current Task ({cli_args.task_id}) -</span>" if False else ""
         rel_path = task.file_path.relative_to(cli_args.task_dir)
-        print(rel_path)
         task_snippet = f"<span color='white'>{current_task} {path} <span weight='bold'>→</span> {task.title} ({rel_path})</span>"
         Path("/tmp/task").write_text(task_snippet)
 
