@@ -56,7 +56,12 @@ def parse_task_title(title: str, today: date) -> Task:
             date_value = today
         else:
             date_split = [int(d) for d in defn[2:].split('/')]
-            date_value = date(year=date_split[2], month=date_split[0], day=date_split[1])
+            if len(date_split) == 3:
+                date_value = date(year=date_split[2], month=date_split[0], day=date_split[1])
+            elif len(date_split) == 2:
+                date_value = date(year=today.year, month=date_split[0], day=date_split[1])
+            else:
+                raise ValueError(f"Unable to parse date for task {title} and date string {defn}")
         if prefix == "c":
             t.created_date = date_value
         elif prefix == "r":

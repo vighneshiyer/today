@@ -18,10 +18,13 @@ def run(args) -> None:
             print(f"The task id provided ({cli_args.task_id}) is not in range, rerun today")
             sys.exit(1)
         task = tasks[cli_args.task_id]
-        path = " → ".join(task.path)
+        #path = " → ".join(task.path)
+        #path = " <span weight='bold' color='red'>/</span> ".join(task.path)
+        #path = " <span weight='bold'>/</span> ".join(task.path)
+        path = " / ".join(task.path)
         current_task = f"<span weight='bold'> Current Task ({cli_args.task_id}) -</span>" if False else ""
         rel_path = task.file_path.relative_to(cli_args.task_dir)
-        task_snippet = f"<span color='white'>{current_task} {path} <span weight='bold'>→</span> {task.title} ({rel_path})</span>"
+        task_snippet = f"<span color='white'>{current_task} {path} <span weight='bold' color='red'>→</span> {task.title} <span color='lightgray'>({rel_path})</span></span>"
         Path("/tmp/task").write_text(task_snippet)
 
     # https://i3wm.org/docs/i3status.html

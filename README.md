@@ -224,6 +224,7 @@ In general, I think these 'quantification' things are mostly useless and can oft
     - i3 integration, use pango syntax in the /tmp/task file: https://docs.gtk.org/Pango/pango_markup.html
 - [x] Do not display subtasks that are already checked off
 - [x] Write quickstart guide / simplify and shorten docs + add ToC
+- [ ] Display the task file name when running today (similar to start)
 - [ ] Display the task hierarchy when displaying task details
 - [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
 - [ ] Add coverage checker for unit tests
