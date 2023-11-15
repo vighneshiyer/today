@@ -26,7 +26,7 @@
 - [x] Do not display subtasks that are already checked off
 - [x] Write quickstart guide / simplify and shorten docs + add ToC
 - ~~[ ] Show subtasks that are done in the visible subtasks (with a checkmark)~~ (goes against the way normal tasks work)
-- [ ] Display the task file name when running today (similar to start) [d:10/7]
+- [ ] Display the task file name when running today (similar to start)
 - [ ] Display the task hierarchy when displaying task details
 - [ ] Escape the task name and hierarchy names in `start` when emitting the file for i3status
 - [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
