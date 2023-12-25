@@ -11,9 +11,8 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.markdown import Markdown
 
-from today.task import Task
+from today.task import Task, task_sorter
 from today.parser import parse_markdown
-from today.output import task_should_be_displayed, task_summary, days, task_details, task_sorter
 
 
 @dataclass(frozen=True)
@@ -85,7 +84,7 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     tasks: List[Task] = list(itertools.chain(*tasks_by_file))
 
     # Only look at tasks that have a due/reminder date on today or number of 'days' in the future
-    tasks_visible: List[Task] = [task for task in tasks if task_should_be_displayed(task, args.task_date_filter())]
+    tasks_visible: List[Task] = [task for task in tasks if task.is_displayed(args.task_date_filter())]
 
     # Sort tasks by their headings and due dates
     tasks_visible.sort(key=functools.partial(task_sorter, today=args.today))
@@ -107,7 +106,7 @@ def maybe_display_specific_task(args: CliArgs, tasks: List[Task], console: Conso
         if len(task.subtasks) > 0:
             console.print(Markdown(f"**Subtasks**:"))
         for subtask in task.subtasks:
-            subtask_summary = task_summary(subtask, args.today)
+            subtask_summary = subtask.summary(args.today)
             if subtask.done:
                 console.print(Markdown(f"- **DONE**: {subtask.title} {subtask_summary}"))
             else:
@@ -124,11 +123,11 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
                 ("" if args.lookahead_days == timedelta(0) else f" (+{days(args.lookahead_days)})"))
     def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
         if len(task.path) == 0:  # Base case
-            parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task_summary(task, args.today)}"))
+            parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task.summary(args.today)}"))
             if task.subtasks:
                 for subtask in task.subtasks:
                     if subtask.done is False:
-                        parent.add(Markdown(f"{subtask.title} {task_summary(subtask, args.today)}"))
+                        parent.add(Markdown(f"{subtask.title} {subtask.summary(args.today)}"))
             return tree
         else:
             # Try to find the first heading in the current tree's children

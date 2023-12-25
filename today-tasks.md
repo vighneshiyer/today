@@ -26,12 +26,15 @@
 - [x] Do not display subtasks that are already checked off
 - [x] Write quickstart guide / simplify and shorten docs + add ToC
 - ~~[ ] Show subtasks that are done in the visible subtasks (with a checkmark)~~ (goes against the way normal tasks work)
-- [ ] Display the task file name when running today (similar to start)
-- [ ] Display the task hierarchy when displaying task details
+- [ ] Do some refactoring and cleanup [d:12/24]
+- [ ] Display the task file name when running today (similar to start) [d:12/24]
+- [ ] Migrate more code outside the printing logic in cli.py for unit testing [d:12/24]
+- [ ] Add importance markers feature [d:12/24]
+
 - [ ] Escape the task name and hierarchy names in `start` when emitting the file for i3status
 - [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
 - [ ] Add coverage checker for unit tests
-- [ ] Migrate more code outside the printing logic in cli.py for unit testing
+- [ ] Display the task hierarchy when displaying task details
 - [ ] Support specifying subtasks in `start` CLI
 - [ ] Support Markdown in `start` CLI output (requires parsing inline Markdown and translating to pango)
 - [ ] List tasks without reminders / due dates (+ be able to read from a specific Markdown file vs a directory) (to check if I missed adding due dates to something)
@@ -42,8 +45,9 @@
 - [ ] Generalize created/due/reminder/finish dates - lots of duplicated logic
 - [ ] Support rendering headings with Markdown (tough to combine Markdown (since it is not necessarily always inline) and Console Markup)
 
-- [ ] Recurring tasks
-    - TBD: more complex recurrence descriptions, maybe use ical recur format string? This implementation also seems brittle and has many caveats - is there a better way?
+### Recurring tasks
+
+- TBD: more complex recurrence descriptions, maybe use ical recur format string? This implementation also seems brittle and has many caveats - is there a better way?
 
 ```markdown
 - A task can be made recurring by specifying a `[recur:]` string in the task title.
