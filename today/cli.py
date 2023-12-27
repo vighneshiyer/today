@@ -98,7 +98,7 @@ def maybe_display_specific_task(args: CliArgs, tasks: List[Task], console: Conso
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
         task = tasks[args.task_id]
-        details = task_details(task, args.task_id, args.today)
+        details = task.details(args.task_id, args.today)
         console.print("")
         console.print(Markdown(details))
         console.print("")
