@@ -3,13 +3,12 @@ from datetime import date
 
 from today.task import Task
 from today.parser import parse_heading, handle_headings_stack, parse_markdown, extract_date_defns,\
-    parse_task_title
-
+    parse_task_title, Heading
 
 class TestParser:
     def test_parse_heading(self) -> None:
-        assert parse_heading("# Title") == (1, "Title")
-        assert parse_heading("### **title 2**") == (3, "**title 2**")
+        assert parse_heading("# Title") == Heading(1, "Title")
+        assert parse_heading("### **title 2**") == Heading(3, "**title 2**")
         with pytest.raises(ValueError):
             parse_heading("bare line")
 
@@ -20,7 +19,8 @@ class TestParser:
 
         # Test deepening hierarchy
         assert handle_headings_stack([], "# h1") == ["h1"]
-        assert handle_headings_stack(["h1", "h2"], "### h3") == ["h1", "h2", "h3"]
+        assert handle_headings_stack(['h1', 'h2'], "### h3") == \
+                ["h1", "h2", "h3"]
         with pytest.raises(ValueError):
             handle_headings_stack(["h1", "h2"], "#### h4")
 
@@ -30,8 +30,8 @@ class TestParser:
         # Test pulling out of hierarchy
         assert handle_headings_stack(["h1", "h2"], "# h1prime") == ["h1prime"]
         assert handle_headings_stack(["h1", "h2", "h3"], "## h2prime") == ["h1", "h2prime"]
-        assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "## h2prime") == ["h1", "h2prime"]
-        assert handle_headings_stack(["h1", "h2", "h3", "h4", "h5"], "# h1prime") == ["h1prime"]
+        assert handle_headings_stack(["h1", "h2", "h3", "h4"], "## h2prime") == ["h1", "h2prime"]
+        assert handle_headings_stack(["h1", "h2", "h3", "h4"], "# h1prime") == ["h1prime"]
 
     def test_extract_date_defns(self) -> None:
         date_defns, title = extract_date_defns("[c:33] things #tag [d:233] [f:5] asdf [c:99]")
@@ -103,8 +103,8 @@ Description for task 1
 
 - [ ] Main task [d:1/10/2022] [r:1/3/2022]
     - [ ] Subtask 1 [d:t]
-    - [ ] Subtask 2 
-    
+    - [ ] Subtask 2
+
 Description
 """
         today = date.today()

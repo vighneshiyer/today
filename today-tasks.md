@@ -31,6 +31,14 @@
 - [ ] Migrate more code outside the printing logic in cli.py for unit testing [d:12/24]
 - [ ] Add importance markers feature [d:12/24]
 
+### Assignees
+
+- `[@name]` assigns a task to a particular person
+- The start and today CLI scripts should take in `--name` and match against all the names
+- Another argument should be `--only-mine` to show only tasks specifically assigned to the name, and not also the anon tasks
+
+### Nits
+
 - [ ] Escape the task name and hierarchy names in `start` when emitting the file for i3status
 - [ ] Verify that a subtask that is due earlier than the main task shows up at the right time (when the subtask is due or has a reminder, not the main task)
 - [ ] Add coverage checker for unit tests

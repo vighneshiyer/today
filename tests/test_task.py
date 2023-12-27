@@ -2,15 +2,14 @@ from datetime import date
 import unicodedata
 import functools
 
-from today.task import Task
-from today.output import task_summary, task_sorter
+from today.task import Task, task_sorter
 
 
 def remove_control_characters(s):
     return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
 
 
-class TestOutput:
+class TestTask:
     def test_task_is_displayed(self) -> None:
         assert Task(due_date=date(2022, 1, 5)).is_displayed(date(2022, 1, 4)) is False
         assert Task(due_date=date(2022, 1, 5)).is_displayed(date(2022, 1, 5)) is True

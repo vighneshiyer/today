@@ -1,38 +1,44 @@
+from dataclasses import dataclass
 from typing import Tuple, List, Optional
 from datetime import date
 import re
 
-from today.task import Task
+from today.task import Task, Heading
 
 date_defn_re = re.compile(r"\[.:.")
 task_re = re.compile(r"^- \[[ xX]\] ")
 subtask_re = re.compile(r"^[ \t]+- \[[ xX]\] ")
 
 
-def parse_heading(s: str) -> Tuple[int, str]:
+def parse_heading(s: str) -> Heading:
     for i in range(len(s)):
         if s[i] == " ":
-            return i, s[i+1:]
+            return Heading(level=i, name=s[i+1:])
         elif s[i] == "#":
             continue
         else:
             raise ValueError(f"Malformed heading {s}")
-    raise ValueError
+    raise ValueError("This should never happen")
 
 
-def handle_headings_stack(headings_stack: List[str], heading: str) -> List[str]:
-    heading_depth, heading_str = parse_heading(heading)
-    if heading_depth > len(headings_stack):  # deeper into hierarchy
-        if heading_depth is not len(headings_stack) + 1:
+def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[str]:
+    heading = parse_heading(heading_raw)
+    last_level = len(headings_stack)
+    if heading.level > last_level:  # deeper into hierarchy
+        if heading.level is not last_level + 1:
             raise ValueError(f"Heading {heading} nested too deep")
-    elif heading_depth == len(headings_stack):  # same hierarchy level, different heading
+    elif heading.level == last_level:  # same hierarchy level, different heading
         headings_stack.pop()
     else:  # higher hierarchy level, pop off current level and upper level
-        for _ in range(len(headings_stack) - heading_depth + 1):
+        for _ in range(last_level - heading.level + 1):
             headings_stack.pop()
-    headings_stack.append(heading_str)
+    headings_stack.append(heading.name)
     return headings_stack
 
+# extract_task_attrs - call them task attributes
+class RawAttribute:
+    prefix: str
+    value: str
 
 def extract_date_defns(title: str) -> Tuple[List[str], str]:
     date_defns: List[str] = []

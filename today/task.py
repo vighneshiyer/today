@@ -21,6 +21,11 @@ def days(days: timedelta) -> str:
     else:
         return f"{days.days} days"
 
+@dataclass
+class Heading:
+    level: int
+    name: str
+
 
 @dataclass
 class Task:
