@@ -26,10 +26,20 @@
 - [x] Do not display subtasks that are already checked off
 - [x] Write quickstart guide / simplify and shorten docs + add ToC
 - ~~[ ] Show subtasks that are done in the visible subtasks (with a checkmark)~~ (goes against the way normal tasks work)
-- [ ] Do some refactoring and cleanup [d:12/24]
-- [ ] Display the task file name when running today (similar to start) [d:12/24]
-- [ ] Migrate more code outside the printing logic in cli.py for unit testing [d:12/24]
-- [ ] Add importance markers feature [d:12/24]
+- [x] Do some refactoring and cleanup [d:12/24]
+- [x] Migrate more code outside the printing logic in cli.py for unit testing [d:12/24]
+- [x] Display the task file name when running today (similar to start) [d:12/24]
+- [ ] Be able to select a subtask using `start`
+
+### Importance Markers
+
+The idea is that every day there might be 1-3 critical tasks that should be placed at the top no matter what the heading order is.
+There should be a way to mark those critical tasks such that they always show up at the top and it makes task selection easy.
+Also, the remaining tasks can be displayed in the normal tree form as 'extras' for a given day.
+
+- [ ] Rename date_defns to task_attrs
+- [ ] Add importance markers parsing
+- [ ] Add new logic to tree printing
 
 ### Assignees
 

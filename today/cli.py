@@ -11,7 +11,7 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.markdown import Markdown
 
-from today.task import Task, task_sorter
+from today.task import Task, task_sorter, days
 from today.parser import parse_markdown
 
 
@@ -119,9 +119,9 @@ def maybe_display_specific_task(args: CliArgs, tasks: List[Task], console: Conso
 
 def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
     # Print tasks as a tree
-    tree = Tree(f"[bold underline]Tasks for today ({args.today})[/bold underline]" +
+    tree = Tree(f"[bold underline]Tasks for today[/bold underline] ({args.today})" +
                 ("" if args.lookahead_days == timedelta(0) else f" (+{days(args.lookahead_days)})"))
-    def add_to_tree(task: Task, tree: Tree, task_idx: int) -> Tree:
+    def add_to_tree(task: Task, tree: Tree, task_idx: int, first_call: bool) -> Tree:
         if len(task.path) == 0:  # Base case
             parent = tree.add(Markdown(f"**{task_idx}** - {task.title} {task.summary(args.today)}"))
             if task.subtasks:
@@ -130,17 +130,19 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
                         parent.add(Markdown(f"{subtask.title} {subtask.summary(args.today)}"))
             return tree
         else:
-            # Try to find the first heading in the current tree's children
             labels = [t.label for t in tree.children]
-            if task.path[0] in labels:  # The first heading has been found, continue to traverse down its children
-                first_heading = task.path[0]
+            # Try to find the first heading in the current tree's children
+            # The top-level heading should contain the file path of its associated markdown file
+            # All the subheadings should just be the raw heading
+            expected_label = f"{task.path[0]}" if not first_call else f"[bold]{task.path[0]}[/bold] ([red italic]{task.file_path.relative_to(args.task_dir)}[/red italic])"
+            if expected_label in labels:  # The first heading has been found, continue to traverse down its children
                 task.path = task.path[1:]
-                return add_to_tree(task, tree.children[labels.index(first_heading)], task_idx)
+                return add_to_tree(task, tree.children[labels.index(expected_label)], task_idx, False)
             else:  # The first heading doesn't exist, create it and traverse down its children
-                child = tree.add(f"{task.path[0]}")
+                child = tree.add(expected_label)
                 task.path = task.path[1:]
-                return add_to_tree(task, child, task_idx)
+                return add_to_tree(task, child, task_idx, False)
 
     for i, task in enumerate(tasks):
-        add_to_tree(task, tree, i)
+        add_to_tree(task, tree, i, True)
     return tree
