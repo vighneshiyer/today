@@ -30,6 +30,7 @@
 - [x] Migrate more code outside the printing logic in cli.py for unit testing [d:12/24]
 - [x] Display the task file name when running today (similar to start) [d:12/24]
 - [ ] Be able to select a subtask using `start`
+- [ ] Add line number to `start` display of a task [d:2/15/2024]
 
 ### Importance Markers
 
