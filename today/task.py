@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple, Any
+from typing import Optional, List, Any
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
@@ -20,6 +20,7 @@ def days(days: timedelta) -> str:
         return f"{days.days} day"
     else:
         return f"{days.days} days"
+
 
 @dataclass
 class Heading:
@@ -44,26 +45,47 @@ class Task:
     def is_displayed(self, date_limit: date) -> bool:
         if self.due_date and self.due_date <= date_limit and self.done is False:
             return True
-        elif self.reminder_date and self.reminder_date <= date_limit and self.done is False:
+        elif (
+            self.reminder_date
+            and self.reminder_date <= date_limit
+            and self.done is False
+        ):
             return True
-        elif self.subtasks and any([st.due_date and st.due_date <= date_limit and st.done is False for st in self.subtasks]):
+        elif self.subtasks and any(
+            [
+                st.due_date and st.due_date <= date_limit and st.done is False
+                for st in self.subtasks
+            ]
+        ):
             return True
-        elif self.subtasks and any([st.reminder_date and st.reminder_date <= date_limit and st.done is False for st in self.subtasks]):
+        elif self.subtasks and any(
+            [
+                st.reminder_date and st.reminder_date <= date_limit and st.done is False
+                for st in self.subtasks
+            ]
+        ):
             return True
         else:
             return False
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
+        reminder_msg: Optional[str] = None
+        due_msg: Optional[str] = None
         if self.due_date:
             due_msg = date_relative_to_today(self.due_date, today, prefix="Due ")
         if self.reminder_date:
-            reminder_msg = date_relative_to_today(self.reminder_date, today, prefix="Reminder ")
+            reminder_msg = date_relative_to_today(
+                self.reminder_date, today, prefix="Reminder "
+            )
 
         if self.reminder_date and not self.due_date:  # Reminder only
+            assert reminder_msg
             return f"[{reminder_msg}]"
         elif self.due_date and not self.reminder_date:  # Due date only
+            assert due_msg
             return f"[{due_msg}]"
         else:  # Both due and reminder dates
+            assert reminder_msg and due_msg
             assert self.due_date and self.reminder_date
             if self.due_date > today:  # Only show reminder if task is not overdue
                 return f"[{reminder_msg}] [{due_msg}]"
@@ -78,7 +100,7 @@ class Task:
         if self.reminder_date:
             string += f"**Reminder date**: {self.reminder_date} ({date_relative_to_today(self.reminder_date, today, prefix='Reminder ')})  \n"
         if len(self.description) > 0:
-            string += f"**Description**:  \n\n"
+            string += "**Description**:  \n\n"
             string += self.description
         return string
 
