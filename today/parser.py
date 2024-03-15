@@ -1,10 +1,12 @@
+from abc import ABC
+from dataclasses import dataclass
 from typing import Tuple, List, Optional
-from datetime import date
+from datetime import date, timedelta
 import re
 
 from today.task import Task, Heading
 
-date_defn_re = re.compile(r"\[.:.")
+task_attr_re = re.compile(r"\[.:.")
 task_re = re.compile(r"^- \[[ xX]\] ")
 subtask_re = re.compile(r"^[ \t]+- \[[ xX]\] ")
 
@@ -35,17 +37,47 @@ def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[s
     return headings_stack
 
 
-# extract_task_attrs - call them task attributes
-class RawAttribute:
-    prefix: str
-    value: str
+@dataclass
+class TaskAttribute(ABC):
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        raise NotImplementedError()
 
 
-def extract_date_defns(title: str) -> Tuple[List[str], str]:
+@dataclass
+class DateAttribute(TaskAttribute):
+    created_date: Optional[date]
+    due_date: Optional[date]
+    reminder_date: Optional[date]
+    finished_date: Optional[date]
+
+    # today = 3, due_date = 5 (not visible)
+    # today = 5, due_date = 5 (visible)
+    # today = 3, due_date = 5, lookahead_days = 1 (not visible)
+    # today = 3, due_date = 5, lookahead_days = 2 (visible)
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        effective_date = today + timedelta(days=lookahead_days)
+        if self.due_date and effective_date >= self.due_date:
+            return True
+        elif self.reminder_date and effective_date >= self.reminder_date:
+            return True
+        else:
+            return False
+
+
+@dataclass
+class AssignmentAttribute(TaskAttribute):
+    assigned_to: str
+
+
+def extract_task_attrs(task_title: str) -> List[TaskAttribute]:
+    pass
+
+
+def extract_task_attrs(title: str) -> List[TaskAttribute]:
     date_defns: List[str] = []
 
     # remove date defns iteratively until nothing is left
-    while (match := date_defn_re.search(title)) is not None:
+    while (match := task_attr_re.search(title)) is not None:
         start_idx = title.find("[", match.start())
         end_idx = title.find("]", match.start())
         date_defns.append(title[start_idx + 1 : end_idx])
