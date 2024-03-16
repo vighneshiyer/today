@@ -4,6 +4,62 @@ from datetime import date, timedelta
 from pathlib import Path
 
 
+@dataclass
+class Heading:
+    level: int
+    name: str
+
+
+@dataclass
+class RawAttribute:
+    prefix: str
+    value: str
+
+
+TaskTitle = str
+
+
+@dataclass
+class DateAttribute:
+    created_date: Optional[date] = None
+    due_date: Optional[date] = None
+    reminder_date: Optional[date] = None
+    finished_date: Optional[date] = None
+
+    # today = 3, due_date = 5 (not visible)
+    # today = 5, due_date = 5 (visible)
+    # today = 3, due_date = 5, lookahead_days = 1 (not visible)
+    # today = 3, due_date = 5, lookahead_days = 2 (visible)
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        effective_date = today + timedelta(days=lookahead_days)
+        if self.due_date and effective_date >= self.due_date:
+            return True
+        elif self.reminder_date and effective_date >= self.reminder_date:
+            return True
+        else:
+            return False
+
+
+@dataclass
+class AssignmentAttribute:
+    assigned_to: str
+
+
+@dataclass
+class ImportanceAttribute:
+    importance: int
+
+
+@dataclass
+class TaskAttributes:
+    date_attr: DateAttribute = DateAttribute()
+    assn_attr: Optional[AssignmentAttribute] = None
+    importance_attr: Optional[ImportanceAttribute] = None
+
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        raise NotImplementedError()
+
+
 def date_relative_to_today(d: date, today: date, prefix: str = "") -> str:
     if d < today:
         delta: timedelta = today - d
@@ -20,12 +76,6 @@ def days(days: timedelta) -> str:
         return f"{days.days} day"
     else:
         return f"{days.days} days"
-
-
-@dataclass
-class Heading:
-    level: int
-    name: str
 
 
 @dataclass

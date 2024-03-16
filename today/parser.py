@@ -1,10 +1,16 @@
-from abc import ABC
-from dataclasses import dataclass
 from typing import Tuple, List, Optional
-from datetime import date, timedelta
+from datetime import date
 import re
 
-from today.task import Task, Heading
+from today.task import (
+    AssignmentAttribute,
+    ImportanceAttribute,
+    Task,
+    Heading,
+    RawAttribute,
+    TaskAttributes,
+    TaskTitle,
+)
 
 task_attr_re = re.compile(r"\[.:.")
 task_re = re.compile(r"^- \[[ xX]\] ")
@@ -37,52 +43,44 @@ def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[s
     return headings_stack
 
 
-@dataclass
-class TaskAttribute(ABC):
-    def is_visible(self, today: date, lookahead_days: int) -> bool:
-        raise NotImplementedError()
+def extract_task_attrs(raw_task_title: str) -> Tuple[TaskAttributes, TaskTitle]:
+    task_attr = TaskAttributes()
 
-
-@dataclass
-class DateAttribute(TaskAttribute):
-    created_date: Optional[date]
-    due_date: Optional[date]
-    reminder_date: Optional[date]
-    finished_date: Optional[date]
-
-    # today = 3, due_date = 5 (not visible)
-    # today = 5, due_date = 5 (visible)
-    # today = 3, due_date = 5, lookahead_days = 1 (not visible)
-    # today = 3, due_date = 5, lookahead_days = 2 (visible)
-    def is_visible(self, today: date, lookahead_days: int) -> bool:
-        effective_date = today + timedelta(days=lookahead_days)
-        if self.due_date and effective_date >= self.due_date:
-            return True
-        elif self.reminder_date and effective_date >= self.reminder_date:
-            return True
+    # remove attributes from the [raw_task_title] iteratively until no more are left
+    while (match := task_attr_re.search(raw_task_title)) is not None:
+        start_idx = raw_task_title.find("[", match.start())
+        end_idx = raw_task_title.find("]", match.start())
+        attr_string = raw_task_title[start_idx + 1 : end_idx]
+        if attr_string[0] == "@":
+            task_attr.assn_attr = AssignmentAttribute(attr_string[1:])
+        elif attr_string[0] == "!":
+            task_attr.importance_attr = ImportanceAttribute(int(attr_string[1:]))
         else:
-            return False
+            # This must be a date attribute
+            attr_string_parts = attr_string.split(":")
+            assert (
+                len(attr_string_parts) == 2
+            ), f"Date attribute '{attr_string}' from task title '{raw_task_title}' is improperly formatted"
+            prefix = attr_string_parts[0]
+            date_parts = attr_string_parts[1].split('/')
+            if prefix == "c":
+
+        raw_attributes.append(raw_task_title[start_idx + 1 : end_idx])
+        # Remove the parsed attribute from the title
+        raw_task_title = raw_task_title.replace(raw_task_title[start_idx : end_idx + 2], "")
+    return raw_attributes, raw_task_title.rstrip()
 
 
-@dataclass
-class AssignmentAttribute(TaskAttribute):
-    assigned_to: str
-
-
-def extract_task_attrs(task_title: str) -> List[TaskAttribute]:
-    pass
-
-
-def extract_task_attrs(title: str) -> List[TaskAttribute]:
-    date_defns: List[str] = []
-
-    # remove date defns iteratively until nothing is left
-    while (match := task_attr_re.search(title)) is not None:
-        start_idx = title.find("[", match.start())
-        end_idx = title.find("]", match.start())
-        date_defns.append(title[start_idx + 1 : end_idx])
-        title = title.replace(title[start_idx : end_idx + 2], "")
-    return date_defns, title.rstrip()
+# def extract_task_defns(title: str) -> List[TaskAttribute]:
+#     date_defns: List[str] = []
+#
+#     # remove date defns iteratively until nothing is left
+#     while (match := task_attr_re.search(title)) is not None:
+#         start_idx = title.find("[", match.start())
+#         end_idx = title.find("]", match.start())
+#         date_defns.append(title[start_idx + 1 : end_idx])
+#         title = title.replace(title[start_idx : end_idx + 2], "")
+#     return date_defns, title.rstrip()
 
 
 def parse_task_title(title: str, today: date) -> Task:
