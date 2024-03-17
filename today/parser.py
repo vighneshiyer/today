@@ -4,10 +4,9 @@ import re
 
 from today.task import (
     AssignmentAttribute,
-    ImportanceAttribute,
+    PriorityAttribute,
     Task,
     Heading,
-    RawAttribute,
     TaskAttributes,
     TaskTitle,
 )
@@ -28,6 +27,8 @@ def parse_heading(s: str) -> Heading:
     raise ValueError("This should never happen")
 
 
+# Given the current state of headings in [headings_stack] and a new heading [heading_raw],
+# validate that the new heading has the correct indentation and return a new heading stack
 def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[str]:
     heading = parse_heading(heading_raw)
     last_level = len(headings_stack)
@@ -43,7 +44,66 @@ def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[s
     return headings_stack
 
 
-def extract_task_attrs(raw_task_title: str) -> Tuple[TaskAttributes, TaskTitle]:
+def md_checkbox(s: str) -> Optional[bool]:
+    # None = not a checkbox, True = checked, False = unchecked
+    if s.startswith("[ ]"):
+        return False
+    elif s.startswith("[x]") or s.startswith("[X]"):
+        return True
+    else:
+        return None
+
+
+# Mutates the fields of [task_attr] based on the [attr_string]
+# [attr_string] is of the form [d:<date>] or [@person] () or [!2] (priority flag)
+# If the [attr_string] is malformed, return an error message
+def assign_task_attr(
+    attr_string: str, task_attr: TaskAttributes, today: date
+) -> None | str:
+    if attr_string[:2] == "@:":
+        # This is an assignment attribute
+        task_attr.assn_attr = AssignmentAttribute(attr_string[2:])
+        return
+    elif attr_string[:2] == "!:":
+        # This is a priority attribute
+        task_attr.priority_attr = PriorityAttribute(int(attr_string[2:]))
+        return
+    else:
+        # This must be a date attribute
+        assert attr_string[1] == ":"
+        prefix = attr_string[0]
+        date_raw = attr_string[2:]
+        date_value: date
+        if date_raw == "t":
+            date_value = today
+        else:
+            date_split = [int(d) for d in date_raw.split("/")]
+            if len(date_split) == 3:  # month / day / year
+                date_value = date(
+                    year=date_split[2], month=date_split[0], day=date_split[1]
+                )
+            elif len(date_split) == 2:  # month / day (year is implicitly today's year)
+                date_value = date(
+                    year=today.year, month=date_split[0], day=date_split[1]
+                )
+            else:
+                return f"Date attribute '{attr_string}' is improperly formatted"
+        if prefix == "c":
+            task_attr.date_attr.created_date = date_value
+        elif prefix == "d":
+            task_attr.date_attr.due_date = date_value
+        elif prefix == "r":
+            task_attr.date_attr.reminder_date = date_value
+        elif prefix == "f":
+            task_attr.date_attr.finished_date = date_value
+        else:
+            return f"Date attribute prefix '{prefix}' in date attribute '{attr_string}' isn't recognized"
+        return
+
+
+def extract_task_attrs(
+    raw_task_title: str, today: date
+) -> Tuple[TaskAttributes, TaskTitle]:
     task_attr = TaskAttributes()
 
     # remove attributes from the [raw_task_title] iteratively until no more are left
@@ -51,24 +111,22 @@ def extract_task_attrs(raw_task_title: str) -> Tuple[TaskAttributes, TaskTitle]:
         start_idx = raw_task_title.find("[", match.start())
         end_idx = raw_task_title.find("]", match.start())
         attr_string = raw_task_title[start_idx + 1 : end_idx]
-        if attr_string[0] == "@":
-            task_attr.assn_attr = AssignmentAttribute(attr_string[1:])
-        elif attr_string[0] == "!":
-            task_attr.importance_attr = ImportanceAttribute(int(attr_string[1:]))
-        else:
-            # This must be a date attribute
-            attr_string_parts = attr_string.split(":")
-            assert (
-                len(attr_string_parts) == 2
-            ), f"Date attribute '{attr_string}' from task title '{raw_task_title}' is improperly formatted"
-            prefix = attr_string_parts[0]
-            date_parts = attr_string_parts[1].split('/')
-            if prefix == "c":
-
-        raw_attributes.append(raw_task_title[start_idx + 1 : end_idx])
+        error_msg = assign_task_attr(attr_string, task_attr, today)
+        if error_msg is not None:
+            raise RuntimeError(
+                f"An error was encountered when parsing the task title '{raw_task_title}'. Error: {error_msg}"
+            )
         # Remove the parsed attribute from the title
-        raw_task_title = raw_task_title.replace(raw_task_title[start_idx : end_idx + 2], "")
-    return raw_attributes, raw_task_title.rstrip()
+        raw_task_title = raw_task_title.replace(
+            raw_task_title[start_idx : end_idx + 2], ""
+        )
+    return task_attr, raw_task_title.rstrip()
+
+
+def parse_task_title(title: str, today: date) -> Task:
+    task_attr, task_title = extract_task_attrs(title, today)
+    t = Task(title=task_title, attrs=task_attr)
+    return t
 
 
 # def extract_task_defns(title: str) -> List[TaskAttribute]:
@@ -83,51 +141,41 @@ def extract_task_attrs(raw_task_title: str) -> Tuple[TaskAttributes, TaskTitle]:
 #     return date_defns, title.rstrip()
 
 
-def parse_task_title(title: str, today: date) -> Task:
-    date_defns, task_title = extract_date_defns(title)
-    t = Task(title=task_title)
-    for defn in date_defns:
-        prefix = defn[0]
-        assert defn[1] == ":"
-        if defn[2:] == "t":
-            date_value = today
-        else:
-            date_split = [int(d) for d in defn[2:].split("/")]
-            if len(date_split) == 3:
-                date_value = date(
-                    year=date_split[2], month=date_split[0], day=date_split[1]
-                )
-            elif len(date_split) == 2:
-                date_value = date(
-                    year=today.year, month=date_split[0], day=date_split[1]
-                )
-            else:
-                raise ValueError(
-                    f"Unable to parse date for task {title} and date string {defn}"
-                )
-        if prefix == "c":
-            t.created_date = date_value
-        elif prefix == "r":
-            t.reminder_date = date_value
-        elif prefix == "d":
-            t.due_date = date_value
-        elif prefix == "f":
-            t.finished_date = date_value
-        else:
-            raise ValueError(
-                f"Prefix {prefix} in date definition string {defn} is not recognized"
-            )
-    return t
-
-
-def md_checkbox(s: str) -> Optional[bool]:
-    # None = not a checkbox, True = checked, False = unchecked
-    if s.startswith("[ ]"):
-        return False
-    elif s.startswith("[x]") or s.startswith("[X]"):
-        return True
-    else:
-        return None
+# def parse_task_title(title: str, today: date) -> Task:
+#     date_defns, task_title = extract_date_defns(title)
+#     t = Task(title=task_title)
+#     for defn in date_defns:
+#         prefix = defn[0]
+#         assert defn[1] == ":"
+#         if defn[2:] == "t":
+#             date_value = today
+#         else:
+#             date_split = [int(d) for d in defn[2:].split("/")]
+#             if len(date_split) == 3:
+#                 date_value = date(
+#                     year=date_split[2], month=date_split[0], day=date_split[1]
+#                 )
+#             elif len(date_split) == 2:
+#                 date_value = date(
+#                     year=today.year, month=date_split[0], day=date_split[1]
+#                 )
+#             else:
+#                 raise ValueError(
+#                     f"Unable to parse date for task {title} and date string {defn}"
+#                 )
+#         if prefix == "c":
+#             t.created_date = date_value
+#         elif prefix == "r":
+#             t.reminder_date = date_value
+#         elif prefix == "d":
+#             t.due_date = date_value
+#         elif prefix == "f":
+#             t.finished_date = date_value
+#         else:
+#             raise ValueError(
+#                 f"Prefix {prefix} in date definition string {defn} is not recognized"
+#             )
+#     return t
 
 
 def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:

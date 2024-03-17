@@ -46,15 +46,15 @@ class AssignmentAttribute:
 
 
 @dataclass
-class ImportanceAttribute:
-    importance: int
+class PriorityAttribute:
+    priority: int
 
 
 @dataclass
 class TaskAttributes:
-    date_attr: DateAttribute = DateAttribute()
+    date_attr: DateAttribute = field(default_factory=lambda: DateAttribute())
     assn_attr: Optional[AssignmentAttribute] = None
-    importance_attr: Optional[ImportanceAttribute] = None
+    priority_attr: Optional[PriorityAttribute] = None
 
     def is_visible(self, today: date, lookahead_days: int) -> bool:
         raise NotImplementedError()
@@ -85,10 +85,7 @@ class Task:
     done: bool = False
     description: str = ""  # A Markdown string with the task description
     subtasks: List["Task"] = field(default_factory=lambda: [])
-    created_date: Optional[date] = None
-    reminder_date: Optional[date] = None
-    due_date: Optional[date] = None
-    finished_date: Optional[date] = None
+    attrs: TaskAttributes = field(default_factory=lambda: TaskAttributes())
     file_path: Path = Path.cwd()
     line_number: int = 0
 

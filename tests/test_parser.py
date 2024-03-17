@@ -13,6 +13,8 @@ from today.parser import (
 
 
 class TestParser:
+    today = date.today()
+
     def test_parse_heading(self) -> None:
         assert parse_heading("# Title") == Heading(1, "Title")
         assert parse_heading("### **title 2**") == Heading(3, "**title 2**")
@@ -47,7 +49,7 @@ class TestParser:
             "h1prime"
         ]
 
-    #def test_extract_date_defns(self) -> None:
+    # def test_extract_date_defns(self) -> None:
     #    date_defns, title = extract_date_defns(
     #        "[c:33] things #tag [d:233] [f:5] asdf [c:99]"
     #    )
@@ -61,7 +63,25 @@ class TestParser:
     #    assert title2 == "title [link](http://link.org)"
 
     def test_extract_task_attrs(self) -> None:
+        attrs, title = extract_task_attrs(
+            raw_task_title="[c:3/4/2024] things #tag [d:3/8/2024] [f:t] asdf",
+            today=self.today,
+        )
+        assert attrs.date_attr.created_date == date(2024, 3, 4)
+        assert attrs.date_attr.due_date == date(2024, 3, 8)
+        assert attrs.date_attr.finished_date == self.today
+        assert title == "things #tag asdf"
 
+        attrs2, title2 = extract_task_attrs(
+            raw_task_title="[d:3/3] title [link](http://link.org) [@:vighneshiyer] [!:2]",
+            today=self.today,
+        )
+        assert attrs2.date_attr.due_date == date(self.today.year, 3, 3)
+        assert attrs2.assn_attr
+        assert attrs2.assn_attr.assigned_to == "vighneshiyer"
+        assert attrs2.priority_attr
+        assert attrs2.priority_attr.priority == 2
+        assert title2 == "title [link](http://link.org)"
 
     def test_parse_task_title(self) -> None:
         assert parse_task_title(
