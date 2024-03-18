@@ -47,6 +47,7 @@ class AssignmentAttribute:
 
 @dataclass
 class PriorityAttribute:
+    # [priority] of 0 is higher than [priority] of 1
     priority: int
 
 

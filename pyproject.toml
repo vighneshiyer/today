@@ -18,6 +18,7 @@ start = "today.scripts.start:main"
 python = "^3.9"
 rich = "^13.7"
 pydantic = "^2.6.4"
+more-itertools = "^10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.1"

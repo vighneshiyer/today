@@ -1,7 +1,7 @@
 import pytest
 from datetime import date
 
-from today.task import Task
+from today.task import DateAttribute, Task
 from today.parser import (
     parse_heading,
     handle_headings_stack,
@@ -49,20 +49,8 @@ class TestParser:
             "h1prime"
         ]
 
-    # def test_extract_date_defns(self) -> None:
-    #    date_defns, title = extract_date_defns(
-    #        "[c:33] things #tag [d:233] [f:5] asdf [c:99]"
-    #    )
-    #    assert date_defns == ["c:33", "d:233", "f:5", "c:99"]
-    #    assert title == "things #tag asdf"
-
-    #    date_defns2, title2 = extract_date_defns(
-    #        "[d:3/3] title [link](http://link.org) [f:3]"
-    #    )
-    #    assert date_defns2 == ["d:3/3", "f:3"]
-    #    assert title2 == "title [link](http://link.org)"
-
     def test_extract_task_attrs(self) -> None:
+        # Simple attributes
         attrs, title = extract_task_attrs(
             raw_task_title="[c:3/4/2024] things #tag [d:3/8/2024] [f:t] asdf",
             today=self.today,
@@ -72,8 +60,9 @@ class TestParser:
         assert attrs.date_attr.finished_date == self.today
         assert title == "things #tag asdf"
 
+        # Difficult attributes
         attrs2, title2 = extract_task_attrs(
-            raw_task_title="[d:3/3] title [link](http://link.org) [@:vighneshiyer] [!:2]",
+            raw_task_title="title [d:3/3] [link](http://link.org) [@vighneshiyer] [!2]",
             today=self.today,
         )
         assert attrs2.date_attr.due_date == date(self.today.year, 3, 3)
@@ -82,6 +71,16 @@ class TestParser:
         assert attrs2.priority_attr
         assert attrs2.priority_attr.priority == 2
         assert title2 == "title [link](http://link.org)"
+
+        # No attributes
+        attrs3, title3 = extract_task_attrs(
+            raw_task_title="things #tag",
+            today=self.today,
+        )
+        assert attrs3.priority_attr is None
+        assert attrs3.date_attr == DateAttribute()  # empty attribute class
+        assert attrs3.assn_attr is None
+        assert title3 == "things #tag"
 
     def test_parse_task_title(self) -> None:
         assert parse_task_title(

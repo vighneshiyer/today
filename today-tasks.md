@@ -37,11 +37,13 @@
 The idea is that every day there might be 1-3 critical tasks that should be placed at the top no matter what the heading order is.
 There should be a way to mark those critical tasks such that they always show up at the top and it makes task selection easy.
 Also, the remaining tasks can be displayed in the normal tree form as 'extras' for a given day.
+I'm generalizing this into a priority marking system.
 
 - [ ] Importance markers [d:3/12/2024]
-  - [ ] Rename date_defns to task_attrs
+  - [x] Rename date_defns to task_attrs
   - [ ] Add importance markers parsing
   - [ ] Add new logic to tree printing
+  - [ ] Add README docs
 
 ### Assignees
 

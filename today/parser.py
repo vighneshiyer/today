@@ -1,6 +1,7 @@
 from typing import Tuple, List, Optional
 from datetime import date
 import re
+from more_itertools import windowed
 
 from today.task import (
     AssignmentAttribute,
@@ -11,7 +12,7 @@ from today.task import (
     TaskTitle,
 )
 
-task_attr_re = re.compile(r"\[.:.")
+task_attr_re = re.compile(r"\[(?P<prefix>(.:|@|!))(?P<value>.*?)\]\s?")
 task_re = re.compile(r"^- \[[ xX]\] ")
 subtask_re = re.compile(r"^[ \t]+- \[[ xX]\] ")
 
@@ -54,25 +55,24 @@ def md_checkbox(s: str) -> Optional[bool]:
         return None
 
 
-# Mutates the fields of [task_attr] based on the [attr_string]
-# [attr_string] is of the form [d:<date>] or [@person] () or [!2] (priority flag)
-# If the [attr_string] is malformed, return an error message
+# Mutates the fields of [task_attr] based on a raw attribute string (prefix + value)
+# of the form [d:<date>] (prefix='d:', value='<date>') or [@person] or [!2]
+# If the prefix or value are malformed, return an error message
 def assign_task_attr(
-    attr_string: str, task_attr: TaskAttributes, today: date
+    prefix: str, value: str, task_attr: TaskAttributes, today: date
 ) -> None | str:
-    if attr_string[:2] == "@:":
+    if prefix == "@":
         # This is an assignment attribute
-        task_attr.assn_attr = AssignmentAttribute(attr_string[2:])
+        task_attr.assn_attr = AssignmentAttribute(value)
         return
-    elif attr_string[:2] == "!:":
+    elif prefix == "!":
         # This is a priority attribute
-        task_attr.priority_attr = PriorityAttribute(int(attr_string[2:]))
+        task_attr.priority_attr = PriorityAttribute(int(value))
         return
     else:
         # This must be a date attribute
-        assert attr_string[1] == ":"
-        prefix = attr_string[0]
-        date_raw = attr_string[2:]
+        prefix = prefix[0]  # the raw prefix passed is of the form 'd:'
+        date_raw = value
         date_value: date
         if date_raw == "t":
             date_value = today
@@ -87,7 +87,7 @@ def assign_task_attr(
                     year=today.year, month=date_split[0], day=date_split[1]
                 )
             else:
-                return f"Date attribute '{attr_string}' is improperly formatted"
+                return f"Date attribute value '{value}' is improperly formatted"
         if prefix == "c":
             task_attr.date_attr.created_date = date_value
         elif prefix == "d":
@@ -97,7 +97,7 @@ def assign_task_attr(
         elif prefix == "f":
             task_attr.date_attr.finished_date = date_value
         else:
-            return f"Date attribute prefix '{prefix}' in date attribute '{attr_string}' isn't recognized"
+            return f"Date attribute prefix '{prefix}' isn't recognized"
         return
 
 
@@ -106,76 +106,42 @@ def extract_task_attrs(
 ) -> Tuple[TaskAttributes, TaskTitle]:
     task_attr = TaskAttributes()
 
-    # remove attributes from the [raw_task_title] iteratively until no more are left
-    while (match := task_attr_re.search(raw_task_title)) is not None:
-        start_idx = raw_task_title.find("[", match.start())
-        end_idx = raw_task_title.find("]", match.start())
-        attr_string = raw_task_title[start_idx + 1 : end_idx]
-        error_msg = assign_task_attr(attr_string, task_attr, today)
+    # Find all matches for the attribute regex and parse each one while mutating [task_attr]
+    task_attr_matches = list(re.finditer(task_attr_re, raw_task_title))
+    if len(task_attr_matches) == 0:
+        # short circuit when there are no attributes to parse
+        return task_attr, raw_task_title
+    for match in task_attr_matches:
+        prefix = match.group("prefix")
+        value = match.group("value")
+        error_msg = assign_task_attr(prefix, value, task_attr, today)
         if error_msg is not None:
             raise RuntimeError(
                 f"An error was encountered when parsing the task title '{raw_task_title}'. Error: {error_msg}"
             )
-        # Remove the parsed attribute from the title
-        raw_task_title = raw_task_title.replace(
-            raw_task_title[start_idx : end_idx + 2], ""
-        )
-    return task_attr, raw_task_title.rstrip()
+
+    # Strip all the task attribute matches from the [raw_task_title]
+    # Do this efficiently by first computing the substring indices we need, then constructing the new string
+    match_spans: List[Tuple[int, int]] = [m.span(0) for m in task_attr_matches]
+    not_match_spans = (
+        [(0, match_spans[0][0])]
+        + [
+            (span1[1], span2[0])
+            for (span1, span2) in windowed(match_spans, 2)
+            if span1 is not None and span2 is not None
+        ]
+        + [(match_spans[-1][1], len(raw_task_title))]
+    )
+    task_title = ""
+    for span in not_match_spans:
+        task_title = task_title + raw_task_title[span[0] : span[1]]
+    return task_attr, task_title.rstrip()
 
 
 def parse_task_title(title: str, today: date) -> Task:
     task_attr, task_title = extract_task_attrs(title, today)
     t = Task(title=task_title, attrs=task_attr)
     return t
-
-
-# def extract_task_defns(title: str) -> List[TaskAttribute]:
-#     date_defns: List[str] = []
-#
-#     # remove date defns iteratively until nothing is left
-#     while (match := task_attr_re.search(title)) is not None:
-#         start_idx = title.find("[", match.start())
-#         end_idx = title.find("]", match.start())
-#         date_defns.append(title[start_idx + 1 : end_idx])
-#         title = title.replace(title[start_idx : end_idx + 2], "")
-#     return date_defns, title.rstrip()
-
-
-# def parse_task_title(title: str, today: date) -> Task:
-#     date_defns, task_title = extract_date_defns(title)
-#     t = Task(title=task_title)
-#     for defn in date_defns:
-#         prefix = defn[0]
-#         assert defn[1] == ":"
-#         if defn[2:] == "t":
-#             date_value = today
-#         else:
-#             date_split = [int(d) for d in defn[2:].split("/")]
-#             if len(date_split) == 3:
-#                 date_value = date(
-#                     year=date_split[2], month=date_split[0], day=date_split[1]
-#                 )
-#             elif len(date_split) == 2:
-#                 date_value = date(
-#                     year=today.year, month=date_split[0], day=date_split[1]
-#                 )
-#             else:
-#                 raise ValueError(
-#                     f"Unable to parse date for task {title} and date string {defn}"
-#                 )
-#         if prefix == "c":
-#             t.created_date = date_value
-#         elif prefix == "r":
-#             t.reminder_date = date_value
-#         elif prefix == "d":
-#             t.due_date = date_value
-#         elif prefix == "f":
-#             t.finished_date = date_value
-#         else:
-#             raise ValueError(
-#                 f"Prefix {prefix} in date definition string {defn} is not recognized"
-#             )
-#     return t
 
 
 def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
