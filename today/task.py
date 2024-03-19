@@ -39,6 +39,18 @@ class DateAttribute:
         else:
             return False
 
+    # If this is a subtask and we have the attributes of the parent task,
+    # propagate the parent attributes into the subtask
+    def merge_attributes(self, parent_attrs: "DateAttribute") -> None:
+        if self.created_date is None:
+            self.created_date = parent_attrs.created_date
+        if self.due_date is None:
+            self.due_date = parent_attrs.due_date
+        if self.reminder_date is None:
+            self.reminder_date = parent_attrs.reminder_date
+        if self.finished_date is None:
+            self.finished_date = parent_attrs.finished_date
+
 
 @dataclass
 class AssignmentAttribute:
@@ -59,6 +71,10 @@ class TaskAttributes:
 
     def is_visible(self, today: date, lookahead_days: int) -> bool:
         raise NotImplementedError()
+
+    def merge_attributes(self, parent_attrs: "TaskAttributes") -> None:
+        # TODO: are there other attributes to merge (priority or assignment?)
+        self.date_attr.merge_attributes(parent_attrs.date_attr)
 
 
 def date_relative_to_today(d: date, today: date, prefix: str = "") -> str:
@@ -90,31 +106,14 @@ class Task:
     file_path: Path = Path.cwd()
     line_number: int = 0
 
-    def is_displayed(self, date_limit: date) -> bool:
-        if self.due_date and self.due_date <= date_limit and self.done is False:
-            return True
-        elif (
-            self.reminder_date
-            and self.reminder_date <= date_limit
-            and self.done is False
-        ):
-            return True
-        elif self.subtasks and any(
-            [
-                st.due_date and st.due_date <= date_limit and st.done is False
-                for st in self.subtasks
-            ]
-        ):
-            return True
-        elif self.subtasks and any(
-            [
-                st.reminder_date and st.reminder_date <= date_limit and st.done is False
-                for st in self.subtasks
-            ]
-        ):
-            return True
-        else:
-            return False
+    # A task should be displayed if it has a reminder or due date that is today or has passed
+    # If a task is already done then it should not be displayed no matter what
+    def is_displayed(self, today: date, lookahead_days: int = 0) -> bool:
+        task_visible = self.attrs.date_attr.is_visible(today, lookahead_days)
+        subtasks_visible = any(
+            [t.is_displayed(today, lookahead_days) for t in self.subtasks]
+        )
+        return (task_visible or subtasks_visible) and not self.done
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
         reminder_msg: Optional[str] = None

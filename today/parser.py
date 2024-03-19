@@ -1,4 +1,4 @@
-from typing import Tuple, List, Optional
+from typing import Sequence, Tuple, List, Optional
 from datetime import date
 import re
 from more_itertools import windowed
@@ -144,7 +144,7 @@ def parse_task_title(title: str, today: date) -> Task:
     return t
 
 
-def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
+def parse_markdown(md: Sequence[str], today: date = date.today()) -> List[Task]:
     headings_stack: List[str] = []
     current_task: Optional[Task] = None
     tasks: List[Task] = []
@@ -177,14 +177,7 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
             subtask.path = headings_stack.copy()
             subtask.done = subtask_status
             subtask.line_number = i + 1
-            if not subtask.due_date and current_task.due_date:
-                subtask.due_date = current_task.due_date
-            if not subtask.reminder_date and current_task.reminder_date:
-                subtask.reminder_date = current_task.reminder_date
-            if not subtask.finished_date and current_task.finished_date:
-                subtask.finished_date = current_task.finished_date
-            if not subtask.created_date and current_task.created_date:
-                subtask.created_date = current_task.created_date
+            subtask.attrs.merge_attributes(current_task.attrs)
             current_task.subtasks.append(subtask)
         elif len(line) == 0 and current_task is None:
             continue

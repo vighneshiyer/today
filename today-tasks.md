@@ -41,7 +41,7 @@ I'm generalizing this into a priority marking system.
 
 - [ ] Importance markers [d:3/12/2024]
   - [x] Rename date_defns to task_attrs
-  - [ ] Add importance markers parsing
+  - [x] Add importance markers parsing
   - [ ] Add new logic to tree printing
   - [ ] Add README docs
 

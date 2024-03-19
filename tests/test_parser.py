@@ -1,7 +1,7 @@
 import pytest
 from datetime import date
 
-from today.task import DateAttribute, Task
+from today.task import DateAttribute, Task, TaskAttributes, date_relative_to_today
 from today.parser import (
     parse_heading,
     handle_headings_stack,
@@ -88,15 +88,24 @@ class TestParser:
             today=date.today(),
         ) == Task(
             title="task *title* #tag other",
-            due_date=date(2022, 1, 1),
-            created_date=date(2022, 2, 2),
-            reminder_date=date(2022, 1, 4),
-            finished_date=date(2022, 1, 5),
+            attrs=TaskAttributes(
+                date_attr=DateAttribute(
+                    created_date=date(2022, 2, 2),
+                    due_date=date(2022, 1, 1),
+                    reminder_date=date(2022, 1, 4),
+                    finished_date=date(2022, 1, 5),
+                )
+            ),
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(RuntimeError):
             parse_task_title("task [k:1/2/2023]", date.today())
         assert parse_task_title("task [d:t] [r:t]", date.today()) == Task(
-            title="task", due_date=date.today(), reminder_date=date.today()
+            title="task",
+            attrs=TaskAttributes(
+                date_attr=DateAttribute(
+                    due_date=date.today(), reminder_date=date.today()
+                )
+            ),
         )
 
     def test_basic_task_parsing(self) -> None:
@@ -132,7 +141,7 @@ Description for task 1
                 done=False,
                 line_number=3,
                 description="Description for task 1\n\n> quote block\n>\n> another line",
-                due_date=date(2023, 2, 3),
+                attrs=TaskAttributes(DateAttribute(due_date=date(2023, 2, 3))),
             ),
             Task(path=["Tasks"], title="Task 2", done=True, line_number=11),
         ]
@@ -180,24 +189,34 @@ Description
                 done=False,
                 line_number=3,
                 description="Description",
-                due_date=date(2022, 1, 10),
-                reminder_date=date(2022, 1, 3),
+                attrs=TaskAttributes(
+                    DateAttribute(
+                        due_date=date(2022, 1, 10), reminder_date=date(2022, 1, 3)
+                    )
+                ),
                 subtasks=[
                     Task(
                         path=["Tasks"],
                         title="Subtask 1",
                         done=False,
                         line_number=4,
-                        due_date=today,
-                        reminder_date=date(2022, 1, 3),
+                        attrs=TaskAttributes(
+                            DateAttribute(
+                                due_date=today, reminder_date=date(2022, 1, 3)
+                            )
+                        ),
                     ),
                     Task(
                         path=["Tasks"],
                         title="Subtask 2",
                         done=False,
                         line_number=5,
-                        due_date=date(2022, 1, 10),
-                        reminder_date=date(2022, 1, 3),
+                        attrs=TaskAttributes(
+                            DateAttribute(
+                                due_date=date(2022, 1, 10),
+                                reminder_date=date(2022, 1, 3),
+                            )
+                        ),
                     ),
                 ],
             )
