@@ -51,6 +51,30 @@ class DateAttribute:
         if self.finished_date is None:
             self.finished_date = parent_attrs.finished_date
 
+    def summary(self, today: date) -> str:
+        reminder_msg: Optional[str] = None
+        due_msg: Optional[str] = None
+        if self.due_date:
+            due_msg = date_relative_to_today(self.due_date, today, prefix="Due ")
+        if self.reminder_date:
+            reminder_msg = date_relative_to_today(
+                self.reminder_date, today, prefix="Reminder "
+            )
+
+        if self.reminder_date and not self.due_date:  # Reminder only
+            assert reminder_msg
+            return f"[{reminder_msg}]"
+        elif self.due_date and not self.reminder_date:  # Due date only
+            assert due_msg
+            return f"[{due_msg}]"
+        else:  # Both due and reminder dates
+            assert reminder_msg and due_msg
+            assert self.due_date and self.reminder_date
+            if self.due_date > today:  # Only show reminder if task is not overdue
+                return f"[{reminder_msg}] [{due_msg}]"
+            else:
+                return f"[{due_msg}]"
+
 
 @dataclass
 class AssignmentAttribute:
@@ -116,28 +140,7 @@ class Task:
         return (task_visible or subtasks_visible) and not self.done
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
-        reminder_msg: Optional[str] = None
-        due_msg: Optional[str] = None
-        if self.due_date:
-            due_msg = date_relative_to_today(self.due_date, today, prefix="Due ")
-        if self.reminder_date:
-            reminder_msg = date_relative_to_today(
-                self.reminder_date, today, prefix="Reminder "
-            )
-
-        if self.reminder_date and not self.due_date:  # Reminder only
-            assert reminder_msg
-            return f"[{reminder_msg}]"
-        elif self.due_date and not self.reminder_date:  # Due date only
-            assert due_msg
-            return f"[{due_msg}]"
-        else:  # Both due and reminder dates
-            assert reminder_msg and due_msg
-            assert self.due_date and self.reminder_date
-            if self.due_date > today:  # Only show reminder if task is not overdue
-                return f"[{reminder_msg}] [{due_msg}]"
-            else:
-                return f"[{due_msg}]"
+        return self.attrs.date_attr.summary(today)
 
     def details(self, task_id: int, today: date) -> str:  # Returns a Markdown string
         string = ""

@@ -40,7 +40,10 @@ class TestTask:
         assert task.summary(today=date(2022, 1, 10)) == "[**Due 5 days ago**]"
 
         # Task with only reminder date
-        task = Task(reminder_date=date(2022, 1, 5), title="Task 1")
+        task = Task(
+            attrs=TaskAttributes(DateAttribute(reminder_date=date(2022, 1, 5))),
+            title="Task 1",
+        )
         assert task.summary(today=date(2022, 1, 5)) == "[**Reminder today**]"
         assert task.summary(today=date(2022, 1, 4)) == "[Reminder in 1 day]"
         assert task.summary(today=date(2022, 1, 1)) == "[Reminder in 4 days]"
@@ -49,7 +52,10 @@ class TestTask:
 
         # Task with due and reminder dates
         task = Task(
-            due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 1), title="Task 1"
+            attrs=TaskAttributes(
+                DateAttribute(due_date=date(2022, 1, 5), reminder_date=date(2022, 1, 1))
+            ),
+            title="Task 1",
         )
         assert task.summary(today=date(2022, 1, 5)) == "[**Due today**]"
         assert (
