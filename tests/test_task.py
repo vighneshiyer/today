@@ -75,18 +75,26 @@ class TestTask:
 
     def test_task_sorting(self) -> None:
         today = date(2022, 1, 6)
-        due_1_5 = Task(title="due_1_5", due_date=date(2022, 1, 5))
-        remind_1_5 = Task(title="remind_1_5", reminder_date=date(2022, 1, 5))
-        due_1_6 = Task(title="due_1_6", due_date=date(2022, 1, 6))
-        remind_1_6 = Task(title="remind_1_6", reminder_date=date(2022, 1, 6))
-        due_1_7 = Task(title="due_1_7", due_date=date(2022, 1, 7))
-
-        # sort by:
-        # 1. heading path
-        # 2. past due tasks
-        # 3. tasks due today
-        # 4. tasks with reminders today or in the past
-        # 5. tasks with due/reminder dates in the future
+        due_1_5 = Task(
+            title="due_1_5",
+            attrs=TaskAttributes(DateAttribute(due_date=date(2022, 1, 5))),
+        )
+        remind_1_5 = Task(
+            title="remind_1_5",
+            attrs=TaskAttributes(DateAttribute(reminder_date=date(2022, 1, 5))),
+        )
+        due_1_6 = Task(
+            title="due_1_6",
+            attrs=TaskAttributes(DateAttribute(due_date=date(2022, 1, 6))),
+        )
+        remind_1_6 = Task(
+            title="remind_1_6",
+            attrs=TaskAttributes(DateAttribute(reminder_date=date(2022, 1, 6))),
+        )
+        due_1_7 = Task(
+            title="due_1_7",
+            attrs=TaskAttributes(DateAttribute(due_date=date(2022, 1, 7))),
+        )
 
         # Task due at 1/5 is past due vs the task due at 1/6 (due today)
         assert sorted(
