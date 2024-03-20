@@ -107,6 +107,9 @@ class PriorityAttribute:
     # [priority] of 0 is higher than [priority] of 1
     priority: int
 
+    def summary(self) -> str:
+        return f"[***Priority*** = {self.priority}]"
+
 
 @dataclass
 class TaskAttributes:
@@ -118,7 +121,7 @@ class TaskAttributes:
         raise NotImplementedError()
 
     def merge_attributes(self, parent_attrs: "TaskAttributes") -> None:
-        # TODO: are there other attributes to merge (priority or assignment?)
+        # TODO: are there other attributes to merge? (priority or assignment)
         self.date_attr.merge_attributes(parent_attrs.date_attr)
 
 
@@ -143,7 +146,13 @@ class Task:
         return (task_visible or subtasks_visible) and not self.done
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
-        return self.attrs.date_attr.summary(today)
+        date_summary = self.attrs.date_attr.summary(today)
+        pri_summary = (
+            (self.attrs.priority_attr.summary() + " ")
+            if self.attrs.priority_attr
+            else ""
+        )
+        return pri_summary + date_summary
 
     def details(self, task_id: int, today: date) -> str:  # Returns a Markdown string
         string = ""

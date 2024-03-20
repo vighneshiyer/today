@@ -112,34 +112,26 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     return tasks_visible
 
 
-def maybe_display_specific_task(
-    args: CliArgs, tasks: List[Task], console: Console
+def display_specific_task(
+    task: Task, task_id: int, today: date, console: Console
 ) -> None:
-    # If a specific task id is given, print its description and details and exit
-    if args.task_id is not None:
-        if args.task_id < 0 or args.task_id >= len(tasks):
-            console.print(f"The task_id {args.task_id} does not exist")
-            sys.exit(1)
-        task = tasks[args.task_id]
-        details = task.details(args.task_id, args.today)
-        console.print("")
-        console.print(Markdown(details))
+    details = task.details(task_id, today)
+    console.print("")
+    console.print(Markdown(details))
+    console.print("")
+
+    if len(task.subtasks) > 0:
+        console.print(Markdown("**Subtasks**:"))
+    for subtask in task.subtasks:
+        subtask_summary = subtask.summary(today)
+        if subtask.done:
+            console.print(Markdown(f"- **DONE**: {subtask.title} {subtask_summary}"))
+        else:
+            console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
+    if len(task.subtasks) > 0:
         console.print("")
 
-        if len(task.subtasks) > 0:
-            console.print(Markdown("**Subtasks**:"))
-        for subtask in task.subtasks:
-            subtask_summary = subtask.summary(args.today)
-            if subtask.done:
-                console.print(
-                    Markdown(f"- **DONE**: {subtask.title} {subtask_summary}")
-                )
-            else:
-                console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
-        if len(task.subtasks) > 0:
-            console.print("")
-
-        sys.exit(0)
+    sys.exit(0)
 
 
 def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
