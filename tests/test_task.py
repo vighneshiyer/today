@@ -3,7 +3,13 @@ import unicodedata
 import functools
 from dataclasses import replace
 
-from today.task import DateAttribute, Task, TaskAttributes, task_sorter
+from today.task import (
+    DateAttribute,
+    PriorityAttribute,
+    Task,
+    TaskAttributes,
+    task_sorter,
+)
 
 
 def remove_control_characters(s):
@@ -95,6 +101,12 @@ class TestTask:
             title="due_1_7",
             attrs=TaskAttributes(DateAttribute(due_date=date(2022, 1, 7))),
         )
+        pri0_task = Task(
+            title="pri0", attrs=TaskAttributes(priority_attr=PriorityAttribute(0))
+        )
+        pri1_task = Task(
+            title="pri1", attrs=TaskAttributes(priority_attr=PriorityAttribute(1))
+        )
 
         # Task due at 1/5 is past due vs the task due at 1/6 (due today)
         assert sorted(
@@ -116,3 +128,8 @@ class TestTask:
             [due_1_7, due_1_5, remind_1_5, remind_1_6],
             key=functools.partial(task_sorter, today=today),
         ) == [remind_1_5, due_1_5, remind_1_6, due_1_7]
+
+        assert sorted(
+            [due_1_7, due_1_5, pri1_task, pri0_task],
+            key=functools.partial(task_sorter, today=today),
+        ) == [pri0_task, pri1_task, due_1_5, due_1_7]

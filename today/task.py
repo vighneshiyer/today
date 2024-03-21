@@ -164,6 +164,7 @@ class Task:
 
 
 # sort by:
+# 0. task priority
 # 1. heading path
 # 2. past due tasks
 # 3. tasks due today
@@ -171,6 +172,12 @@ class Task:
 # 5. tasks with due/reminder dates in the future
 def task_sorter(task: Task, today: date) -> Any:
     keys: List[Any] = []
+    if task.attrs.priority_attr:
+        keys.append(task.attrs.priority_attr.priority)
+    else:
+        keys.append(
+            100000
+        )  # very big number to not consider priority for tasks without priorities defined
     keys.append(task.path)
     if task.attrs.date_attr.reminder_date:
         keys.append(task.attrs.date_attr.reminder_date - today)
