@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, List, Optional
+from typing import Sequence, Tuple, List, Optional, Union
 from datetime import date
 import re
 from more_itertools import windowed
@@ -60,7 +60,7 @@ def md_checkbox(s: str) -> Optional[bool]:
 # If the prefix or value are malformed, return an error message
 def assign_task_attr(
     prefix: str, value: str, task_attr: TaskAttributes, today: date
-) -> None | str:
+) -> Union[None, str]:
     if prefix == "@":
         # This is an assignment attribute
         task_attr.assn_attr = AssignmentAttribute(value)
