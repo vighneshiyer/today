@@ -11,7 +11,7 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.markdown import Markdown
 
-from today.task import Task, task_sorter, days
+from today.task import PriorityAttribute, Task, task_sorter, days
 from today.parser import parse_markdown
 
 
@@ -107,39 +107,31 @@ def parse_task_files(args: CliArgs) -> List[Task]:
         task for task in tasks if task.is_displayed(args.task_date_filter())
     ]
 
-    # Sort tasks by their headings and due dates
+    # Sort tasks by their priorities and headings and due dates
     tasks_visible.sort(key=functools.partial(task_sorter, today=args.today))
     return tasks_visible
 
 
-def maybe_display_specific_task(
-    args: CliArgs, tasks: List[Task], console: Console
+def display_specific_task(
+    task: Task, task_id: int, today: date, console: Console
 ) -> None:
-    # If a specific task id is given, print its description and details and exit
-    if args.task_id is not None:
-        if args.task_id < 0 or args.task_id >= len(tasks):
-            console.print(f"The task_id {args.task_id} does not exist")
-            sys.exit(1)
-        task = tasks[args.task_id]
-        details = task.details(args.task_id, args.today)
-        console.print("")
-        console.print(Markdown(details))
+    details = task.details(task_id, today)
+    console.print("")
+    console.print(Markdown(details))
+    console.print("")
+
+    if len(task.subtasks) > 0:
+        console.print(Markdown("**Subtasks**:"))
+    for subtask in task.subtasks:
+        subtask_summary = subtask.summary(today)
+        if subtask.done:
+            console.print(Markdown(f"- **DONE**: {subtask.title} {subtask_summary}"))
+        else:
+            console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
+    if len(task.subtasks) > 0:
         console.print("")
 
-        if len(task.subtasks) > 0:
-            console.print(Markdown("**Subtasks**:"))
-        for subtask in task.subtasks:
-            subtask_summary = subtask.summary(args.today)
-            if subtask.done:
-                console.print(
-                    Markdown(f"- **DONE**: {subtask.title} {subtask_summary}")
-                )
-            else:
-                console.print(Markdown(f"- {subtask.title} {subtask_summary}"))
-        if len(task.subtasks) > 0:
-            console.print("")
-
-        sys.exit(0)
+    sys.exit(0)
 
 
 def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
@@ -152,6 +144,19 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
             else f" (+{days(args.lookahead_days)})"
         )
     )
+
+    # Tasks should already be sorted with priority tasks first, then non-priority tasks
+    priority_tasks = [t for t in tasks if t.attrs.priority_attr is not None]
+    other_tasks = [t for t in tasks if t.attrs.priority_attr is None]
+
+    priority_label = tree.add("[bold]Priority Tasks[/bold]")
+    for i, task in enumerate(priority_tasks):
+        priority_label.add(
+            # f"[bold]{i}[/bold] - [blue]{' / '.join(task.path)}[/blue] [blue bold]➔[/blue bold]  {task.title} {Markdown(task.summary(args.today))} ([red italic]{task.file_path.relative_to(args.task_dir)}:{task.line_number}[/red italic])"
+            Markdown(
+                f"**{i}** - {' / '.join(task.path)} → {task.title} {task.summary(args.today)} (*{task.file_path.relative_to(args.task_dir)}:{task.line_number}*)"
+            )
+        )
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int, first_call: bool) -> Tree:
         if len(task.path) == 0:  # Base case
@@ -187,6 +192,6 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
                 task.path = task.path[1:]
                 return add_to_tree(task, child, task_idx, False)
 
-    for i, task in enumerate(tasks):
-        add_to_tree(task, tree, i, True)
+    for i, task in enumerate(other_tasks):
+        add_to_tree(task, tree, i + len(priority_tasks), True)
     return tree

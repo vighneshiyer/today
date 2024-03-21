@@ -18,10 +18,11 @@ start = "today.scripts.start:main"
 python = "^3.9"
 rich = "^13.7"
 pydantic = "^2.6.4"
+more-itertools = "^10.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.1"
-mypy = "^0.991"
+pytest = "^8.1"
+pyright = "^1.1"
 
 [[tool.poetry.source]]
 name = "PyPI"

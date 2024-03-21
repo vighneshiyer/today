@@ -1,10 +1,18 @@
-from typing import Tuple, List, Optional
+from typing import Sequence, Tuple, List, Optional, Union
 from datetime import date
 import re
+from more_itertools import windowed
 
-from today.task import Task, Heading
+from today.task import (
+    AssignmentAttribute,
+    PriorityAttribute,
+    Task,
+    Heading,
+    TaskAttributes,
+    TaskTitle,
+)
 
-date_defn_re = re.compile(r"\[.:.")
+task_attr_re = re.compile(r"\[(?P<prefix>(.:|@|!))(?P<value>.*?)\]\s?")
 task_re = re.compile(r"^- \[[ xX]\] ")
 subtask_re = re.compile(r"^[ \t]+- \[[ xX]\] ")
 
@@ -20,6 +28,8 @@ def parse_heading(s: str) -> Heading:
     raise ValueError("This should never happen")
 
 
+# Given the current state of headings in [headings_stack] and a new heading [heading_raw],
+# validate that the new heading has the correct indentation and return a new heading stack
 def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[str]:
     heading = parse_heading(heading_raw)
     last_level = len(headings_stack)
@@ -35,61 +45,6 @@ def handle_headings_stack(headings_stack: List[str], heading_raw: str) -> List[s
     return headings_stack
 
 
-# extract_task_attrs - call them task attributes
-class RawAttribute:
-    prefix: str
-    value: str
-
-
-def extract_date_defns(title: str) -> Tuple[List[str], str]:
-    date_defns: List[str] = []
-
-    # remove date defns iteratively until nothing is left
-    while (match := date_defn_re.search(title)) is not None:
-        start_idx = title.find("[", match.start())
-        end_idx = title.find("]", match.start())
-        date_defns.append(title[start_idx + 1 : end_idx])
-        title = title.replace(title[start_idx : end_idx + 2], "")
-    return date_defns, title.rstrip()
-
-
-def parse_task_title(title: str, today: date) -> Task:
-    date_defns, task_title = extract_date_defns(title)
-    t = Task(title=task_title)
-    for defn in date_defns:
-        prefix = defn[0]
-        assert defn[1] == ":"
-        if defn[2:] == "t":
-            date_value = today
-        else:
-            date_split = [int(d) for d in defn[2:].split("/")]
-            if len(date_split) == 3:
-                date_value = date(
-                    year=date_split[2], month=date_split[0], day=date_split[1]
-                )
-            elif len(date_split) == 2:
-                date_value = date(
-                    year=today.year, month=date_split[0], day=date_split[1]
-                )
-            else:
-                raise ValueError(
-                    f"Unable to parse date for task {title} and date string {defn}"
-                )
-        if prefix == "c":
-            t.created_date = date_value
-        elif prefix == "r":
-            t.reminder_date = date_value
-        elif prefix == "d":
-            t.due_date = date_value
-        elif prefix == "f":
-            t.finished_date = date_value
-        else:
-            raise ValueError(
-                f"Prefix {prefix} in date definition string {defn} is not recognized"
-            )
-    return t
-
-
 def md_checkbox(s: str) -> Optional[bool]:
     # None = not a checkbox, True = checked, False = unchecked
     if s.startswith("[ ]"):
@@ -100,7 +55,96 @@ def md_checkbox(s: str) -> Optional[bool]:
         return None
 
 
-def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
+# Mutates the fields of [task_attr] based on a raw attribute string (prefix + value)
+# of the form [d:<date>] (prefix='d:', value='<date>') or [@person] or [!2]
+# If the prefix or value are malformed, return an error message
+def assign_task_attr(
+    prefix: str, value: str, task_attr: TaskAttributes, today: date
+) -> Union[None, str]:
+    if prefix == "@":
+        # This is an assignment attribute
+        task_attr.assn_attr = AssignmentAttribute(value)
+        return
+    elif prefix == "!":
+        # This is a priority attribute
+        task_attr.priority_attr = PriorityAttribute(int(value))
+        return
+    else:
+        # This must be a date attribute
+        prefix = prefix[0]  # the raw prefix passed is of the form 'd:'
+        date_raw = value
+        date_value: date
+        if date_raw == "t":
+            date_value = today
+        else:
+            date_split = [int(d) for d in date_raw.split("/")]
+            if len(date_split) == 3:  # month / day / year
+                date_value = date(
+                    year=date_split[2], month=date_split[0], day=date_split[1]
+                )
+            elif len(date_split) == 2:  # month / day (year is implicitly today's year)
+                date_value = date(
+                    year=today.year, month=date_split[0], day=date_split[1]
+                )
+            else:
+                return f"Date attribute value '{value}' is improperly formatted"
+        if prefix == "c":
+            task_attr.date_attr.created_date = date_value
+        elif prefix == "d":
+            task_attr.date_attr.due_date = date_value
+        elif prefix == "r":
+            task_attr.date_attr.reminder_date = date_value
+        elif prefix == "f":
+            task_attr.date_attr.finished_date = date_value
+        else:
+            return f"Date attribute prefix '{prefix}' isn't recognized"
+        return
+
+
+def extract_task_attrs(
+    raw_task_title: str, today: date
+) -> Tuple[TaskAttributes, TaskTitle]:
+    task_attr = TaskAttributes()
+
+    # Find all matches for the attribute regex and parse each one while mutating [task_attr]
+    task_attr_matches = list(re.finditer(task_attr_re, raw_task_title))
+    if len(task_attr_matches) == 0:
+        # short circuit when there are no attributes to parse
+        return task_attr, raw_task_title
+    for match in task_attr_matches:
+        prefix = match.group("prefix")
+        value = match.group("value")
+        error_msg = assign_task_attr(prefix, value, task_attr, today)
+        if error_msg is not None:
+            raise RuntimeError(
+                f"An error was encountered when parsing the task title '{raw_task_title}'. Error: {error_msg}"
+            )
+
+    # Strip all the task attribute matches from the [raw_task_title]
+    # Do this efficiently by first computing the substring indices we need, then constructing the new string
+    match_spans: List[Tuple[int, int]] = [m.span(0) for m in task_attr_matches]
+    not_match_spans = (
+        [(0, match_spans[0][0])]
+        + [
+            (span1[1], span2[0])
+            for (span1, span2) in windowed(match_spans, 2)
+            if span1 is not None and span2 is not None
+        ]
+        + [(match_spans[-1][1], len(raw_task_title))]
+    )
+    task_title = ""
+    for span in not_match_spans:
+        task_title = task_title + raw_task_title[span[0] : span[1]]
+    return task_attr, task_title.rstrip()
+
+
+def parse_task_title(title: str, today: date) -> Task:
+    task_attr, task_title = extract_task_attrs(title, today)
+    t = Task(title=task_title, attrs=task_attr)
+    return t
+
+
+def parse_markdown(md: Sequence[str], today: date = date.today()) -> List[Task]:
     headings_stack: List[str] = []
     current_task: Optional[Task] = None
     tasks: List[Task] = []
@@ -133,14 +177,7 @@ def parse_markdown(md: List[str], today: date = date.today()) -> List[Task]:
             subtask.path = headings_stack.copy()
             subtask.done = subtask_status
             subtask.line_number = i + 1
-            if not subtask.due_date and current_task.due_date:
-                subtask.due_date = current_task.due_date
-            if not subtask.reminder_date and current_task.reminder_date:
-                subtask.reminder_date = current_task.reminder_date
-            if not subtask.finished_date and current_task.finished_date:
-                subtask.finished_date = current_task.finished_date
-            if not subtask.created_date and current_task.created_date:
-                subtask.created_date = current_task.created_date
+            subtask.attrs.merge_attributes(current_task.attrs)
             current_task.subtasks.append(subtask)
         elif len(line) == 0 and current_task is None:
             continue

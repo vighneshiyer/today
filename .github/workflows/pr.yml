@@ -17,7 +17,7 @@ jobs:
     continue-on-error: true
     outputs:
       pytestOutput: ${{ steps.unit-tests.outputs.test }}
-      mypyOutput: ${{ steps.type-checks.outputs.test }}
+      pyrightOutput: ${{ steps.type-checks.outputs.test }}
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
@@ -59,4 +59,4 @@ jobs:
       - name: Type checking
         id: type-checks
         run: |
-          poetry run mypy --namespace-packages -p today
+          poetry run pyright

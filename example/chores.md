@@ -3,7 +3,7 @@
 ## Cleaning *italics*
 
 - [ ] Clean the *countertops* [d:1/11/2022]
-- [ ] ***Wash my car*** [d:1/10/2022]
+- [ ] ***Wash my car*** [d:1/10/2022] [!0]
 - [x] Sweep the floors [d:1/5/2022] [f:1/4/2022]
 - [ ] `Another task` [d:t]
 

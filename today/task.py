@@ -4,6 +4,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 
+# Some functions to simplify stringifying task descriptions and summaries
 def date_relative_to_today(d: date, today: date, prefix: str = "") -> str:
     if d < today:
         delta: timedelta = today - d
@@ -28,47 +29,42 @@ class Heading:
     name: str
 
 
-@dataclass
-class Task:
-    path: List[str] = field(default_factory=lambda: [])
-    title: str = ""
-    done: bool = False
-    description: str = ""  # A Markdown string with the task description
-    subtasks: List["Task"] = field(default_factory=lambda: [])
-    created_date: Optional[date] = None
-    reminder_date: Optional[date] = None
-    due_date: Optional[date] = None
-    finished_date: Optional[date] = None
-    file_path: Path = Path.cwd()
-    line_number: int = 0
+TaskTitle = str
 
-    def is_displayed(self, date_limit: date) -> bool:
-        if self.due_date and self.due_date <= date_limit and self.done is False:
+
+@dataclass
+class DateAttribute:
+    created_date: Optional[date] = None
+    due_date: Optional[date] = None
+    reminder_date: Optional[date] = None
+    finished_date: Optional[date] = None
+
+    # today = 3, due_date = 5 (not visible)
+    # today = 5, due_date = 5 (visible)
+    # today = 3, due_date = 5, lookahead_days = 1 (not visible)
+    # today = 3, due_date = 5, lookahead_days = 2 (visible)
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        effective_date = today + timedelta(days=lookahead_days)
+        if self.due_date and effective_date >= self.due_date:
             return True
-        elif (
-            self.reminder_date
-            and self.reminder_date <= date_limit
-            and self.done is False
-        ):
-            return True
-        elif self.subtasks and any(
-            [
-                st.due_date and st.due_date <= date_limit and st.done is False
-                for st in self.subtasks
-            ]
-        ):
-            return True
-        elif self.subtasks and any(
-            [
-                st.reminder_date and st.reminder_date <= date_limit and st.done is False
-                for st in self.subtasks
-            ]
-        ):
+        elif self.reminder_date and effective_date >= self.reminder_date:
             return True
         else:
             return False
 
-    def summary(self, today: date) -> str:  # Returns a Markdown string
+    # If this is a subtask and we have the attributes of the parent task,
+    # propagate the parent attributes into the subtask
+    def merge_attributes(self, parent_attrs: "DateAttribute") -> None:
+        if self.created_date is None:
+            self.created_date = parent_attrs.created_date
+        if self.due_date is None:
+            self.due_date = parent_attrs.due_date
+        if self.reminder_date is None:
+            self.reminder_date = parent_attrs.reminder_date
+        if self.finished_date is None:
+            self.finished_date = parent_attrs.finished_date
+
+    def summary(self, today: date) -> str:
         reminder_msg: Optional[str] = None
         due_msg: Optional[str] = None
         if self.due_date:
@@ -92,28 +88,103 @@ class Task:
             else:
                 return f"[{due_msg}]"
 
-    def details(self, task_id: int, today: date) -> str:  # Returns a Markdown string
+    def details(self, today: date) -> str:
         string = ""
-        string += f"**Title**: {self.title} (id = `{task_id}`)  \n"
         if self.due_date:
             string += f"**Due date**: {self.due_date} ({date_relative_to_today(self.due_date, today, prefix='Due ')})  \n"
         if self.reminder_date:
             string += f"**Reminder date**: {self.reminder_date} ({date_relative_to_today(self.reminder_date, today, prefix='Reminder ')})  \n"
+        return string
+
+
+@dataclass
+class AssignmentAttribute:
+    assigned_to: str
+
+
+@dataclass
+class PriorityAttribute:
+    # [priority] of 0 is higher than [priority] of 1
+    priority: int
+
+    def summary(self) -> str:
+        return f"[***Priority*** = {self.priority}]"
+
+
+@dataclass
+class TaskAttributes:
+    date_attr: DateAttribute = field(default_factory=lambda: DateAttribute())
+    assn_attr: Optional[AssignmentAttribute] = None
+    priority_attr: Optional[PriorityAttribute] = None
+
+    def is_visible(self, today: date, lookahead_days: int) -> bool:
+        raise NotImplementedError()
+
+    def merge_attributes(self, parent_attrs: "TaskAttributes") -> None:
+        # TODO: are there other attributes to merge? (priority or assignment)
+        self.date_attr.merge_attributes(parent_attrs.date_attr)
+
+
+@dataclass
+class Task:
+    path: List[str] = field(default_factory=lambda: [])
+    title: str = ""
+    done: bool = False
+    description: str = ""  # A Markdown string with the task description
+    subtasks: List["Task"] = field(default_factory=lambda: [])
+    attrs: TaskAttributes = field(default_factory=lambda: TaskAttributes())
+    file_path: Path = Path.cwd()
+    line_number: int = 0
+
+    # A task should be displayed if it has a reminder or due date that is today or has passed
+    # If a task is already done then it should not be displayed no matter what
+    def is_displayed(self, today: date, lookahead_days: int = 0) -> bool:
+        task_visible = self.attrs.date_attr.is_visible(today, lookahead_days)
+        subtasks_visible = any(
+            [t.is_displayed(today, lookahead_days) for t in self.subtasks]
+        )
+        return (task_visible or subtasks_visible) and not self.done
+
+    def summary(self, today: date) -> str:  # Returns a Markdown string
+        date_summary = self.attrs.date_attr.summary(today)
+        pri_summary = (
+            (self.attrs.priority_attr.summary() + " ")
+            if self.attrs.priority_attr
+            else ""
+        )
+        return pri_summary + date_summary
+
+    def details(self, task_id: int, today: date) -> str:  # Returns a Markdown string
+        string = ""
+        string += f"**Title**: {self.title} (id = `{task_id}`)  \n"
         if len(self.description) > 0:
             string += "**Description**:  \n\n"
             string += self.description
         return string
 
 
+# sort by:
+# 0. task priority
+# 1. heading path
+# 2. past due tasks
+# 3. tasks due today
+# 4. tasks with reminders today or in the past
+# 5. tasks with due/reminder dates in the future
 def task_sorter(task: Task, today: date) -> Any:
     keys: List[Any] = []
+    if task.attrs.priority_attr:
+        keys.append(task.attrs.priority_attr.priority)
+    else:
+        keys.append(
+            100000
+        )  # very big number to not consider priority for tasks without priorities defined
     keys.append(task.path)
-    if task.reminder_date:
-        keys.append(task.reminder_date - today)
+    if task.attrs.date_attr.reminder_date:
+        keys.append(task.attrs.date_attr.reminder_date - today)
     else:
         keys.append(timedelta(days=0))
-    if task.due_date:
-        keys.append(task.due_date - today)
+    if task.attrs.date_attr.due_date:
+        keys.append(task.attrs.date_attr.due_date - today)
     else:
         keys.append(timedelta(days=0))
     return keys
