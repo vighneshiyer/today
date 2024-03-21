@@ -43,8 +43,8 @@ I'm generalizing this into a priority marking system.
   - [x] Rename date_defns to task_attrs
   - [x] Add importance markers parsing
   - [x] Cleanup task printing (summary + description) logic into attributes
-  - [ ] Add new logic to tree printing
-  - [ ] Add README docs
+  - [x] Add new logic to tree printing
+  - [x] Add README docs
 
 ### Assignees
 

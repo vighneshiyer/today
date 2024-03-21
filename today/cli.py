@@ -152,7 +152,10 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
     priority_label = tree.add("[bold]Priority Tasks[/bold]")
     for i, task in enumerate(priority_tasks):
         priority_label.add(
-            f"[bold]{i}[/bold] - [blue]{' / '.join(task.path)}[/blue] [blue bold]➔[/blue bold]  {task.title} ([red italic]{task.file_path.relative_to(args.task_dir)}:{task.line_number}[/red italic])"
+            # f"[bold]{i}[/bold] - [blue]{' / '.join(task.path)}[/blue] [blue bold]➔[/blue bold]  {task.title} {Markdown(task.summary(args.today))} ([red italic]{task.file_path.relative_to(args.task_dir)}:{task.line_number}[/red italic])"
+            Markdown(
+                f"**{i}** - {' / '.join(task.path)} → {task.title} {task.summary(args.today)} (*{task.file_path.relative_to(args.task_dir)}:{task.line_number}*)"
+            )
         )
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int, first_call: bool) -> Tree:

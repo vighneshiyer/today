@@ -51,7 +51,7 @@ The task files are the only source of truth!
 `today` is a read-only utility to display what's planned for today.
 To mark a task complete, edit `tasks.md` and tick its Markdown checkbox.
 
-## Detailed Docs
+## Docs
 
 ### Task Files
 
@@ -62,16 +62,40 @@ Ideally each project should be tightly scoped and not drag on forever.
 - You can save Markdown files on disk in any way you want. Add nested folders to encode hierarchy.
 - You can group tasks within a task file any way you want. Add nested Markdown headings to encode hierarchy.
 
-### Task Definitions
+### Defining Tasks
 
 Tasks are defined with a list item that starts with a Markdown checkbox.
+Mark a task as completed by checking its checkbox.
 
-A task can have a created, reminder, due, and finished date by placing it in square brackets with the prefix `c:`, `r:`, `d:`, or `f:`.
+```markdown
+- [x] A completed task
+- [ ] An example task
+```
 
-- The date is in `month`/`day`/`year` format
-- `t` is a shorthand date for today. For example, if a task should be due today, use: `[d:t]`
+#### Task Description
 
-You can add a description for a task underneath the task title. It can consist of any Markdown you want (*except headings*).
+You can add a description for a task underneath the task title.
+It can consist of any Markdown you want (*except headings*).
+
+#### Task Attributes
+
+Task attributes are written in the same line as the task title.
+
+- Date attributes
+  - Created date: `[c:<date>]`
+  - Reminder date: `[r<date>]`
+  - Due date: `[d:<date>]`
+  - Finished date: `[f:<date>]`
+  - Date is in `month`/`day`/`year` format
+    - `t` is a shorthand date for today
+    - For example, if a task should be due today, write `[d:t]`
+- Assignment attribute
+  - `[@<username>]` assigns a task to the given `username`
+- Priority attribute
+  - `[!0]` sets the priority of a task to `0`. `0` is the highest priority, followed by `1`, `2`, ...
+  - Tasks without a priority attribute are printed separately from tasks marked with a priority
+
+#### Subtasks
 
 Subtasks are specified with a nested list of checkboxes under the main task.
 
@@ -79,9 +103,7 @@ Subtasks are specified with a nested list of checkboxes under the main task.
 - If the main task has a created/reminder/due date, it will apply for all subtasks automatically, unless otherwise specified
 - Only one level of subtasks is supported
 
-A task can be marked complete just by checking its checkbox. You can optionally specify a completion time with a finish `f` date.
-
-Here is a complete example:
+### Example
 
 ```markdown
 - [x] Pay the electricity bill [d:t] [f:2/20/2023]
@@ -90,7 +112,7 @@ Here is a complete example:
     - [ ] Wipe the countertops
     - [ ] Throw the trash
 
-Any text here will be part of the main task's description.
+Any text here will be part of the main task's ("Home Cleaning") description.
 
 - Some bullets
     - A nested bullet
