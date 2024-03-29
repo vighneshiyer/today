@@ -165,7 +165,9 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
             )
             if task.subtasks:
                 for subtask in task.subtasks:
-                    if subtask.done is False:
+                    if subtask.done is False and subtask.is_displayed(
+                        args.today, args.lookahead_days.days
+                    ):
                         parent.add(
                             Markdown(f"{subtask.title} {subtask.summary(args.today)}")
                         )

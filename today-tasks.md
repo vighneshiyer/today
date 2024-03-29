@@ -39,7 +39,7 @@ There should be a way to mark those critical tasks such that they always show up
 Also, the remaining tasks can be displayed in the normal tree form as 'extras' for a given day.
 I'm generalizing this into a priority marking system.
 
-- [ ] Importance markers [d:3/12/2024]
+- [x] Importance markers [d:3/12/2024]
   - [x] Rename date_defns to task_attrs
   - [x] Add importance markers parsing
   - [x] Cleanup task printing (summary + description) logic into attributes
