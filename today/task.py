@@ -147,16 +147,20 @@ class Task:
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
         date_summary = self.attrs.date_attr.summary(today)
+        # pri_summary = (
+        #     (self.attrs.priority_attr.summary() + " ")
+        #     if self.attrs.priority_attr
+        #     else ""
+        # )
         pri_summary = (
-            (self.attrs.priority_attr.summary() + " ")
-            if self.attrs.priority_attr
-            else ""
+            ""  # don't include task priorities in the summaries shown in the tree
         )
         return pri_summary + date_summary
 
-    def details(self, task_id: int, today: date) -> str:  # Returns a Markdown string
+    def details(self, today: date) -> str:  # Returns a Markdown string
         string = ""
-        string += f"**Title**: {self.title} (id = `{task_id}`)  \n"
+        string += f"**Title**: {self.title} \n"
+        string += self.attrs.date_attr.details(today)
         if len(self.description) > 0:
             string += "**Description**:  \n\n"
             string += self.description

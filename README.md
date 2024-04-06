@@ -4,7 +4,9 @@
 
 ## Quickstart
 
-Install: `pip install todo-today-cli`
+Install: `pipx install todo-today-cli`.
+
+Install from source: `git clone git@github.com:vighneshiyer/today`, `cd today`, `pipx install -e .`.
 
 Create a file (`tasks.md`) and add the following:
 

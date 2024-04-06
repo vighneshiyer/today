@@ -11,7 +11,7 @@ from rich.tree import Tree
 from rich.console import Console
 from rich.markdown import Markdown
 
-from today.task import PriorityAttribute, Task, task_sorter, days
+from today.task import Task, task_sorter, days
 from today.parser import parse_markdown
 
 
@@ -112,10 +112,8 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     return tasks_visible
 
 
-def display_specific_task(
-    task: Task, task_id: int, today: date, console: Console
-) -> None:
-    details = task.details(task_id, today)
+def display_specific_task(task: Task, today: date, console: Console) -> None:
+    details = task.details(today)
     console.print("")
     console.print(Markdown(details))
     console.print("")
@@ -149,19 +147,22 @@ def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
     priority_tasks = [t for t in tasks if t.attrs.priority_attr is not None]
     other_tasks = [t for t in tasks if t.attrs.priority_attr is None]
 
-    priority_label = tree.add("[bold]Priority Tasks[/bold]")
-    for i, task in enumerate(priority_tasks):
-        priority_label.add(
-            # f"[bold]{i}[/bold] - [blue]{' / '.join(task.path)}[/blue] [blue bold]➔[/blue bold]  {task.title} {Markdown(task.summary(args.today))} ([red italic]{task.file_path.relative_to(args.task_dir)}:{task.line_number}[/red italic])"
-            Markdown(
-                f"**{i}** - {' / '.join(task.path)} → {task.title} {task.summary(args.today)} (*{task.file_path.relative_to(args.task_dir)}:{task.line_number}*)"
+    if len(priority_tasks) > 0:
+        priority_label = tree.add("[bold]Priority Tasks[/bold]")
+        for i, task in enumerate(priority_tasks):
+            priority_label.add(
+                # f"[bold]{i}[/bold] - [blue]{' / '.join(task.path)}[/blue] [blue bold]➔[/blue bold]  {task.title} {Markdown(task.summary(args.today))} ([red italic]{task.file_path.relative_to(args.task_dir)}:{task.line_number}[/red italic])"
+                Markdown(
+                    f"**{i}** - {' / '.join(task.path)} → {task.title} {task.summary(args.today)} (*{task.file_path.relative_to(args.task_dir)}:{task.line_number}*)"
+                )
             )
-        )
 
     def add_to_tree(task: Task, tree: Tree, task_idx: int, first_call: bool) -> Tree:
         if len(task.path) == 0:  # Base case
             parent = tree.add(
-                Markdown(f"**{task_idx}** - {task.title} {task.summary(args.today)}")
+                Markdown(
+                    f"**{task_idx}** - {task.title} {task.summary(args.today)} (*:{task.line_number}*)"
+                )
             )
             if task.subtasks:
                 for subtask in task.subtasks:

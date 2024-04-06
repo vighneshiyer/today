@@ -25,7 +25,7 @@ def run(args) -> None:
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)
         task = tasks[cli_args.task_id]
-        display_specific_task(task, cli_args.task_id, cli_args.today, console)
+        display_specific_task(task, cli_args.today, console)
         sys.exit(0)
 
     tree = tasks_to_tree(cli_args, tasks)
