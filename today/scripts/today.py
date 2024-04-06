@@ -21,6 +21,7 @@ def run(args) -> None:
 
     # If a specific task is displayed, the program will exit
     if cli_args.task_id is not None:
+        assert isinstance(cli_args.task_id, int)
         if cli_args.task_id < 0 or cli_args.task_id >= len(tasks):
             console.print(f"The task_id {args.task_id} does not exist")
             sys.exit(1)

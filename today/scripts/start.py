@@ -14,18 +14,23 @@ def run(args) -> None:
         task_file.write_text("")
     else:
         tasks = parse_task_files(cli_args)
-        if cli_args.task_id >= len(tasks):
-            print(
-                f"The task id provided ({cli_args.task_id}) is not in range, rerun today"
-            )
-            sys.exit(1)
-        task = tasks[cli_args.task_id]
-        # path = " → ".join(task.path)
-        # path = " / ".join(task.path)
-        path = " <span weight='bold'>/</span> ".join(task.path)
-        # current_task = f"<span weight='bold'> Current Task ({cli_args.task_id}) -</span>" if False else ""
-        rel_path = task.file_path.relative_to(cli_args.task_dir)
-        task_snippet = f"<span color='white'> {path} <span weight='bold' color='red'>→</span> {task.title} <span color='lightgray'>({rel_path}:{task.line_number})</span></span>"
+        task_snippet: str
+        if isinstance(cli_args.task_id, str):
+            # This is an ad-hoc task that doesn't correspond to any task file, just display the string
+            task_snippet = f"<span color='white' weight='bold'>Ad-hoc task:</span> <span color='lightgrey'>{cli_args.task_id}</span>"
+        else:
+            if cli_args.task_id >= len(tasks):
+                print(
+                    f"The task id provided ({cli_args.task_id}) is not in range, rerun today"
+                )
+                sys.exit(1)
+            task = tasks[cli_args.task_id]
+            # path = " → ".join(task.path)
+            # path = " / ".join(task.path)
+            path = " <span weight='bold'>/</span> ".join(task.path)
+            # current_task = f"<span weight='bold'> Current Task ({cli_args.task_id}) -</span>" if False else ""
+            rel_path = task.file_path.relative_to(cli_args.task_dir)
+            task_snippet = f"<span color='white'> {path} <span weight='bold' color='red'>→</span> {task.title} <span color='lightgray'>({rel_path}:{task.line_number})</span></span>"
         Path("/tmp/task").write_text(task_snippet)
 
     # https://i3wm.org/docs/i3status.html

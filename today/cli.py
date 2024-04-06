@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import itertools
 from datetime import date, timedelta
-from typing import List, Optional
+from typing import List, Optional, Union
 import functools
 from dataclasses import dataclass
 
@@ -20,7 +20,7 @@ class CliArgs:
     task_dir: Path
     today: date
     lookahead_days: timedelta
-    task_id: Optional[int]
+    task_id: Optional[Union[int, str]]
 
     # Only display tasks that are due / have reminders up to and including this day
     def task_date_filter(self) -> date:
@@ -50,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "task_id",
-        type=int,
+        type=str,
         nargs="?",
         help="Show the description of this specific task",
     )
@@ -76,11 +76,19 @@ def parse_args(parser: argparse.ArgumentParser, args: List[str]) -> CliArgs:
         today = date(int(today_split[2]), int(today_split[0]), int(today_split[1]))
     else:
         today = date.today()
+    task_id: Optional[Union[int, str]]
+    if not ns.task_id:
+        task_id = None
+    else:
+        try:
+            task_id = int(ns.task_id)
+        except ValueError:
+            task_id = ns.task_id
     return CliArgs(
         task_dir=task_dir,
         lookahead_days=lookahead_days,
         today=today,
-        task_id=ns.task_id,
+        task_id=task_id,
     )
 
 
