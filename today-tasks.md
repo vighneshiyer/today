@@ -31,6 +31,7 @@
 - [x] Display the task file name when running today (similar to start) [d:12/24]
 - [x] Add line number to `start` display of a task [d:2/15/2024]
 - [ ] Be able to select a subtask using `start`
+- [ ] Report of finished tasks
 
 ### Importance Markers
 
