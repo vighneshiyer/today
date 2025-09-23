@@ -32,6 +32,9 @@
 - [x] Add line number to `start` display of a task [d:2/15/2024]
 - [ ] Be able to select a subtask using `start`
 - [ ] Report of finished tasks
+  - Need a today weekly report, another cli that parses all tasks and shows the ones finished in the past x days, need to support finished tags and I need to manually mark the finished dates
+- [ ] Display priority tasks first
+  - First display priority tasks, then display today's tasks when running `task`
 
 ### Importance Markers
 
