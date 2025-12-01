@@ -96,6 +96,11 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     # Fetch Markdown task files
     md_files = list(args.task_dir.glob("**/*.md"))
 
+    # Filter out broken symlinks (symlinks that don't exist)
+    md_files = [
+        file for file in md_files if not (file.is_symlink() and not file.exists())
+    ]
+
     # Parse each Markdown task file
     tasks_by_file: List[List[Task]] = [
         parse_markdown(file.read_text().split("\n"), today=args.today)
