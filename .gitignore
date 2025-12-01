@@ -1,3 +1,7 @@
 __pycache__
 .idea
 dist
+.venv
+uv.lock
+*.egg-info
+.pytest_cache
