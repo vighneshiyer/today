@@ -4,20 +4,42 @@ on:
   release:
     types: [created]
 
-env:
-  PYTHON_VERSION: "3.9"
-
 jobs:
-  publish:
+  publish-rust:
     runs-on: ubuntu-latest
-    continue-on-error: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Build release
+        run: cargo build --release
+      
+      - name: Run tests
+        run: cargo test --release
+      
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: cargo publish --allow-dirty
+
+  # Legacy: Keep Python publishing for now
+  publish-python:
+    runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: "3.9"
       - name: Install uv
         uses: astral-sh/setup-uv@v4
       - name: Install dependencies
@@ -26,9 +48,8 @@ jobs:
       - name: Set version from git tag
         run: |
           TAG=$(git describe --tags --abbrev=0)
-          uv version \"$TAG\"
+          uv version "$TAG"
       - name: Build and publish
-        id: publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |

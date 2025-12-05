@@ -1,8 +1,25 @@
 # Today: A File-Centric Task Management System
 
-![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg) [![PyPI version](https://badge.fury.io/py/todo-today-cli.svg)](https://badge.fury.io/py/todo-today-cli)
+![PR CI](https://github.com/vighneshiyer/today/actions/workflows/pr.yml/badge.svg?event=push) ![Publish CI](https://github.com/vighneshiyer/today/actions/workflows/publish.yml/badge.svg) [![Crates.io](https://img.shields.io/crates/v/today.svg)](https://crates.io/crates/today) [![PyPI version](https://badge.fury.io/py/todo-today-cli.svg)](https://badge.fury.io/py/todo-today-cli)
 
 ## Quickstart
+
+### Rust Version (Current)
+
+Install from source:
+```bash
+git clone git@github.com:vighneshiyer/today
+cd today
+cargo build --release
+cargo install --path .
+```
+
+Or install directly from the repository:
+```bash
+cargo install --git https://github.com/vighneshiyer/today
+```
+
+### Python Version (Legacy)
 
 Install: `pipx install todo-today-cli`.
 
@@ -177,6 +194,18 @@ You may want to include aliases to `today` and `start` for your shell:
 alias t 'today --dir $HOME/task_folder'
 alias s 'start --dir $HOME/task_folder'
 ```
+
+## Rust Conversion
+
+This project has been converted from Python to Rust for the following benefits:
+
+- **Performance**: Rust's compiled nature makes the CLI virtually instantaneous even with large task files
+- **Single binary**: No need for Python runtime or virtual environments - just one standalone executable
+- **Memory efficiency**: Lower memory footprint compared to Python
+- **Reliability**: Rust's type system catches errors at compile time
+- **Easy distribution**: Simple installation via `cargo install` or downloading a single binary
+
+The original Python version is still available and maintained as legacy code. Both versions have feature parity and use the same Markdown file format, so you can switch between them seamlessly.
 
 ## Motivation
 

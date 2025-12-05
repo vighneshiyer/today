@@ -1,0 +1,28 @@
+[package]
+name = "today"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vighnesh Iyer <vighnesh.iyer@gmail.com>"]
+description = "A file-centric task management app"
+license = "MIT"
+repository = "https://github.com/vighneshiyer/today"
+keywords = ["cli", "task-management", "todo", "markdown"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+
+[[bin]]
+name = "today"
+path = "src/bin/today.rs"
+
+[[bin]]
+name = "start"
+path = "src/bin/start.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+chrono = "0.4"
+regex = "1.10"
+owo-colors = "4.0"
+walkdir = "2.4"
+
+[dev-dependencies]

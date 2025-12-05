@@ -9,12 +9,53 @@ on:
       - master
 
 jobs:
-  tests:
+  rust-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Cache target directory
+        uses: actions/cache@v3
+        with:
+          path: target
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Build
+        run: cargo build --verbose
+      
+      - name: Run tests
+        run: cargo test --verbose
+      
+      - name: Check formatting
+        run: cargo fmt -- --check
+      
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+  # Keep Python tests for legacy code
+  python-tests:
     runs-on: ubuntu-latest
     continue-on-error: true
-    outputs:
-      pytestOutput: ${{ steps.unit-tests.outputs.test }}
-      pyrightOutput: ${{ steps.type-checks.outputs.test }}
     strategy:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
@@ -33,10 +74,8 @@ jobs:
         run: |
           uv sync --all-extras
       - name: Run unit tests
-        id: unit-tests
         run: |
           uv run pytest tests/ -v
       - name: Type checking
-        id: type-checks
         run: |
           uv run pyright
