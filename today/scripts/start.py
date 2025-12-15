@@ -12,8 +12,32 @@ def run(args) -> None:
 
     if cli_args.task_id is None:
         task_file.write_text("")
+        if sys.platform.startswith("darwin"):
+            task_file.write_text("**No active task** | size=12 md=True")
+            subprocess.run(
+                "open -g swiftbar://refreshplugin?name=today.1m.sh", shell=True
+            )
+        sys.exit(0)
+
+    tasks = parse_task_files(cli_args)
+
+    if sys.platform.startswith("darwin"):
+        task_snippet: str
+        if isinstance(cli_args.task_id, str):
+            task_snippet = f"**DO IT**: {cli_args.task_id} | size=12 length=50 md=True"
+        else:
+            if int(cli_args.task_id) >= len(tasks):
+                print(
+                    f"The task id provided ({cli_args.task_id}) is not in range, rerun today"
+                )
+                sys.exit(1)
+            task = tasks[int(cli_args.task_id)]
+            task_snippet = f"**NOW**: {task.title} | size=12 length=50 md=True"
+        Path("/tmp/task").write_text(task_snippet)
+        subprocess.run("open -g swiftbar://refreshplugin?name=today.1m.sh", shell=True)
+        sys.exit(0)
+
     else:
-        tasks = parse_task_files(cli_args)
         task_snippet: str
         if isinstance(cli_args.task_id, str):
             # This is an ad-hoc task that doesn't correspond to any task file, just display the string
@@ -33,9 +57,9 @@ def run(args) -> None:
             task_snippet = f"<span color='white'> {path} <span weight='bold' color='red'>→</span> {task.title} <span color='lightgray'>({rel_path}:{task.line_number})</span></span>"
         Path("/tmp/task").write_text(task_snippet)
 
-    # https://i3wm.org/docs/i3status.html
-    subprocess.run("killall -USR1 i3status", shell=True)
-    sys.exit(0)
+        # https://i3wm.org/docs/i3status.html
+        subprocess.run("killall -USR1 i3status", shell=True)
+        sys.exit(0)
 
 
 def main():
