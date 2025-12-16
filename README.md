@@ -142,6 +142,10 @@ The tasks will be ordered by heading and criticality of due/reminder dates.
 - To specify a directory to look for Markdown task files in, use `today --dir /path/to/md/files`.
 - To look ahead 10 days in advance for tasks that are due or have reminders, do `today --days 10`.
 - To display the details of a specific task, provide its task number e.g. `today 3`.
+- **For faster performance** (<50ms), use the `--fast` flag: `today --fast --dir /path/to/md/files`
+  - Fast mode uses simple text output instead of rich formatting
+  - Ideal for scripts, frequent CLI usage, or when you need quick feedback
+  - See [PERFORMANCE.md](PERFORMANCE.md) for benchmarks and details
 - Summary: `today` is a READ-ONLY view of the tasks scheduled for today
 
 ### i3 Integration

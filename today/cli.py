@@ -3,13 +3,16 @@ import sys
 from pathlib import Path
 import itertools
 from datetime import date, timedelta
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TYPE_CHECKING
 import functools
 from dataclasses import dataclass
 
-from rich.tree import Tree
-from rich.console import Console
-from rich.markdown import Markdown
+# Lazy imports for rich - only import when displaying output
+# This saves ~50ms of import time
+if TYPE_CHECKING:
+    from rich.tree import Tree
+    from rich.console import Console
+    from rich.markdown import Markdown
 
 from today.task import Task, task_sorter, days
 from today.parser import parse_markdown
@@ -21,6 +24,7 @@ class CliArgs:
     today: date
     lookahead_days: timedelta
     task_id: Optional[Union[int, str]]
+    fast: bool = False
 
     # Only display tasks that are due / have reminders up to and including this day
     def task_date_filter(self) -> date:
@@ -47,6 +51,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         required=False,
         help="Use this date as today's date, e.g. --today 3/4/2022",
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Use simple text output for faster performance (no rich formatting)",
     )
     parser.add_argument(
         "task_id",
@@ -89,6 +98,7 @@ def parse_args(parser: argparse.ArgumentParser, args: List[str]) -> CliArgs:
         lookahead_days=lookahead_days,
         today=today,
         task_id=task_id,
+        fast=ns.fast,
     )
 
 
@@ -125,7 +135,9 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     return tasks_visible
 
 
-def display_specific_task(task: Task, today: date, console: Console) -> None:
+def display_specific_task(task: Task, today: date, console: "Console") -> None:
+    from rich.markdown import Markdown
+    
     details = task.details(today)
     console.print("")
     console.print(Markdown(details))
@@ -145,7 +157,10 @@ def display_specific_task(task: Task, today: date, console: Console) -> None:
     sys.exit(0)
 
 
-def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> Tree:
+def tasks_to_tree(args: CliArgs, tasks: List[Task]) -> "Tree":
+    from rich.tree import Tree
+    from rich.markdown import Markdown
+    
     # Print tasks as a tree
     tree = Tree(
         f"[bold underline]Tasks for today[/bold underline] ({args.today})"

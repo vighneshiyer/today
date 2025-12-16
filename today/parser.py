@@ -1,7 +1,6 @@
 from typing import Sequence, Tuple, List, Optional, Union
 from datetime import date
 import re
-from more_itertools import windowed
 
 from today.task import (
     AssignmentAttribute,
@@ -127,8 +126,7 @@ def extract_task_attrs(
         [(0, match_spans[0][0])]
         + [
             (span1[1], span2[0])
-            for (span1, span2) in windowed(match_spans, 2)
-            if span1 is not None and span2 is not None
+            for span1, span2 in zip(match_spans, match_spans[1:])
         ]
         + [(match_spans[-1][1], len(raw_task_title))]
     )
