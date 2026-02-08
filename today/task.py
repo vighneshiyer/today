@@ -146,6 +146,20 @@ class Task:
         return (task_visible or subtasks_visible) and not self.done
 
     def summary(self, today: date) -> str:  # Returns a Markdown string
+        # Validate that if this task has no dates but has subtasks with dates, we should error
+        has_no_dates = not self.attrs.date_attr.due_date and not self.attrs.date_attr.reminder_date
+        if has_no_dates and len(self.subtasks) > 0:
+            # Check if any subtask has dates
+            for subtask in self.subtasks:
+                if subtask.attrs.date_attr.due_date or subtask.attrs.date_attr.reminder_date:
+                    raise ValueError(
+                        f"\nError: Subtask has a due date or reminder date, but parent task does not.\n"
+                        f"Parent task: '{self.title}'\n"
+                        f"File: {self.file_path}\n"
+                        f"Line: {self.line_number}\n\n"
+                        f"Please add a due date or reminder date to the parent task, or remove dates from its subtasks."
+                    )
+
         date_summary = self.attrs.date_attr.summary(today)
         # pri_summary = (
         #     (self.attrs.priority_attr.summary() + " ")

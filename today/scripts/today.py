@@ -29,10 +29,14 @@ def run(args) -> None:
         display_specific_task(task, cli_args.today, console)
         sys.exit(0)
 
-    tree = tasks_to_tree(cli_args, tasks)
-    console.print("")
-    console.print(tree)
-    console.print("")
+    try:
+        tree = tasks_to_tree(cli_args, tasks)
+        console.print("")
+        console.print(tree)
+        console.print("")
+    except ValueError as e:
+        console.print(f"[red]{str(e)}[/red]")
+        sys.exit(1)
 
 
 def main():
