@@ -21,6 +21,7 @@ class CliArgs:
     today: date
     lookahead_days: timedelta
     task_id: Optional[Union[int, str]]
+    ignore_paths: List[Path]
 
     # Only display tasks that are due / have reminders up to and including this day
     def task_date_filter(self) -> date:
@@ -49,12 +50,33 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use this date as today's date, e.g. --today 3/4/2022",
     )
     parser.add_argument(
+        "--ignore",
+        type=str,
+        action="append",
+        default=[],
+        help="Ignore a file or directory relative to --dir (can be repeated)",
+    )
+    parser.add_argument(
         "task_id",
         type=str,
         nargs="?",
         help="Show the description of this specific task",
     )
     return parser
+
+
+def _is_ignored(file: Path, ignore_paths: List[Path]) -> bool:
+    """Return True if file matches an ignored path or is under an ignored directory."""
+    resolved = file.resolve()
+    for ignore in ignore_paths:
+        if resolved == ignore:
+            return True
+        try:
+            resolved.relative_to(ignore)
+            return True
+        except ValueError:
+            continue
+    return False
 
 
 def parse_args(parser: argparse.ArgumentParser, args: List[str]) -> CliArgs:
@@ -84,11 +106,15 @@ def parse_args(parser: argparse.ArgumentParser, args: List[str]) -> CliArgs:
             task_id = int(ns.task_id)
         except ValueError:
             task_id = ns.task_id
+
+    ignore_paths = [(task_dir / path).resolve() for path in ns.ignore]
+
     return CliArgs(
         task_dir=task_dir,
         lookahead_days=lookahead_days,
         today=today,
         task_id=task_id,
+        ignore_paths=ignore_paths,
     )
 
 
@@ -99,6 +125,11 @@ def parse_task_files(args: CliArgs) -> List[Task]:
     # Filter out broken symlinks (symlinks that don't exist)
     md_files = [
         file for file in md_files if not (file.is_symlink() and not file.exists())
+    ]
+
+    # Filter out ignored files and directories
+    md_files = [
+        file for file in md_files if not _is_ignored(file, args.ignore_paths)
     ]
 
     # Parse each Markdown task file

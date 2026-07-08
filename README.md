@@ -140,6 +140,7 @@ Running `today` will parse all the Markdown files in the current directory, and 
 The tasks will be ordered by heading and criticality of due/reminder dates.
 
 - To specify a directory to look for Markdown task files in, use `today --dir /path/to/md/files`.
+- To ignore a file or directory relative to `--dir`, use `today --ignore archive.md` or `today --ignore old/`. Repeat `--ignore` to skip multiple paths.
 - To look ahead 10 days in advance for tasks that are due or have reminders, do `today --days 10`.
 - To display the details of a specific task, provide its task number e.g. `today 3`.
 - Summary: `today` is a READ-ONLY view of the tasks scheduled for today
