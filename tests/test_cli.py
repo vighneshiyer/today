@@ -1,6 +1,18 @@
 from pathlib import Path
 from datetime import date, timedelta
-from today.cli import build_parser, parse_args, parse_task_files, CliArgs, _is_ignored
+from today.cli import (
+    build_parser,
+    parse_args,
+    parse_task_files,
+    CliArgs,
+    _is_ignored,
+    task_status,
+    task_bucket,
+    task_breadcrumb,
+    order_tasks_for_display,
+    TaskBucket,
+)
+from today.task import Task, TaskAttributes, DateAttribute, PriorityAttribute
 
 
 class TestCli:
@@ -83,3 +95,59 @@ class TestCli:
         tasks = parse_task_files(args)
         assert len(tasks) == 1
         assert tasks[0].title == "Keep me"
+
+    def test_task_status_compact(self) -> None:
+        today = date(2026, 7, 8)
+        overdue = Task(attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 6, 30))))
+        assert task_status(overdue, today) == "Due 8d ago"
+        due_today = Task(attrs=TaskAttributes(date_attr=DateAttribute(due_date=today)))
+        assert task_status(due_today, today) == "Due today"
+        reminder = Task(attrs=TaskAttributes(date_attr=DateAttribute(reminder_date=date(2026, 7, 1))))
+        assert task_status(reminder, today) == "Reminder 7d ago"
+
+    def test_task_bucket(self) -> None:
+        today = date(2026, 7, 8)
+        priority = Task(
+            attrs=TaskAttributes(
+                date_attr=DateAttribute(due_date=date(2026, 6, 1)),
+                priority_attr=PriorityAttribute(priority=0),
+            )
+        )
+        overdue = Task(attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 6, 1))))
+        due_today = Task(attrs=TaskAttributes(date_attr=DateAttribute(due_date=today)))
+        upcoming = Task(attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 7, 10))))
+        assert task_bucket(priority, today) == TaskBucket.PRIORITY
+        assert task_bucket(overdue, today) == TaskBucket.OVERDUE
+        assert task_bucket(due_today, today) == TaskBucket.TODAY
+        assert task_bucket(upcoming, today) == TaskBucket.UPCOMING
+
+    def test_order_tasks_for_display(self) -> None:
+        today = date(2026, 7, 8)
+        upcoming = Task(title="Later", attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 7, 10))))
+        overdue_old = Task(title="Old", attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 6, 1))))
+        overdue_new = Task(title="Recent", attrs=TaskAttributes(date_attr=DateAttribute(due_date=date(2026, 7, 1))))
+        due_today = Task(title="Now", attrs=TaskAttributes(date_attr=DateAttribute(due_date=today)))
+        priority = Task(
+            title="P0",
+            attrs=TaskAttributes(
+                date_attr=DateAttribute(due_date=date(2026, 6, 15)),
+                priority_attr=PriorityAttribute(priority=0),
+            ),
+        )
+        ordered = order_tasks_for_display(
+            [upcoming, overdue_new, due_today, overdue_old, priority], today
+        )
+        assert [t.title for t in ordered] == ["P0", "Old", "Recent", "Now", "Later"]
+
+    def test_task_breadcrumb(self, tmp_path: Path) -> None:
+        path = tmp_path / "finances" / "investments.md"
+        path.parent.mkdir()
+        path.write_text("")
+        task = Task(
+            path=["Investment Accounts", "UC DCP"],
+            file_path=path,
+            line_number=7,
+        )
+        assert task_breadcrumb(task, tmp_path) == (
+            "finances/investments.md:7 · Investment Accounts / UC DCP"
+        )

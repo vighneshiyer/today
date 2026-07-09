@@ -24,14 +24,18 @@ Create a file (`tasks.md`) and add the following:
 > Trash pickup is deferred until next week if it lands on NYE
 ```
 
-Run `today`, and you'll get a listing of tasks that are assigned for today (sorted by Markdown headings and overdue status).
+Run `today`, and you'll get a listing of tasks that are assigned for today, grouped by urgency.
 
 ```text
-Tasks for today (2023-02-06)
-└── My Tasks
-    └── Household
-        ├── 0 - Take out the trash [Reminder 35 days ago]
-        └── 1 - Sweep the floors [Due today]
+Tasks for today · 2023-02-06 · 2 tasks
+
+OVERDUE
+  0  Reminder 35d ago  Take out the trash
+                       tasks.md:7 · My Tasks / Household
+
+TODAY
+  1  Due today         Sweep the floors
+                       tasks.md:6 · My Tasks / Household
 ```
 
 To display the description of a task, specify its number.
@@ -137,7 +141,7 @@ Super easy. No databases, no "state" in the task manager. Directly edit the task
 
 The core CLI command is `today`.
 Running `today` will parse all the Markdown files in the current directory, and display all the tasks that are due or have reminders for today (or are overdue).
-The tasks will be ordered by heading and criticality of due/reminder dates.
+Tasks are grouped into PRIORITY, OVERDUE, TODAY, and UPCOMING, sorted by urgency within each group.
 
 - To specify a directory to look for Markdown task files in, use `today --dir /path/to/md/files`.
 - To ignore a file or directory relative to `--dir`, use `today --ignore archive.md` or `today --ignore old/`. Repeat `--ignore` to skip multiple paths.

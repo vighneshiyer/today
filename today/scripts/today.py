@@ -7,7 +7,7 @@ from today.cli import (
     parse_args,
     parse_task_files,
     display_specific_task,
-    tasks_to_tree,
+    display_tasks,
 )
 
 
@@ -30,10 +30,7 @@ def run(args) -> None:
         sys.exit(0)
 
     try:
-        tree = tasks_to_tree(cli_args, tasks)
-        console.print("")
-        console.print(tree)
-        console.print("")
+        display_tasks(cli_args, tasks, console)
     except ValueError as e:
         console.print(f"[red]{str(e)}[/red]")
         sys.exit(1)
